@@ -1,0 +1,113 @@
+#pragma version 6
+txn ApplicationID
+int 0
+==
+bnz main_l17
+txn OnCompletion
+int DeleteApplication
+==
+bnz main_l16
+txn OnCompletion
+int UpdateApplication
+==
+bnz main_l15
+txn OnCompletion
+int OptIn
+==
+bnz main_l14
+txn OnCompletion
+int CloseOut
+==
+bnz main_l13
+txn OnCompletion
+int NoOp
+==
+bnz main_l7
+err
+main_l7:
+txna ApplicationArgs 0
+byte "send"
+==
+bnz main_l12
+txna ApplicationArgs 0
+byte "c2c"
+==
+bnz main_l10
+err
+main_l10:
+callsub c2c_2
+main_l11:
+int 0
+return
+main_l12:
+int 0
+callsub send_1
+b main_l11
+main_l13:
+int 0
+return
+main_l14:
+int 0
+callsub init_0
+int 1
+return
+main_l15:
+int 0
+return
+main_l16:
+int 0
+return
+main_l17:
+int 1
+return
+
+// init
+init_0:
+store 0
+load 0
+byte "customer"
+txna ApplicationArgs 0
+app_local_put
+load 0
+byte "reward"
+txna ApplicationArgs 1
+btoi
+app_local_put
+retsub
+
+// send
+send_1:
+store 1
+itxn_begin
+int pay
+itxn_field TypeEnum
+load 1
+byte "customer"
+app_local_get
+itxn_field Receiver
+load 1
+byte "reward"
+app_local_get
+itxn_field Amount
+int 0
+itxn_field Fee
+itxn_submit
+int 1
+return
+
+// c2c
+c2c_2:
+itxn_begin
+int appl
+itxn_field TypeEnum
+txna ApplicationArgs 1
+btoi
+txnas Applications
+itxn_field ApplicationID
+byte "send"
+itxn_field ApplicationArgs
+int 0
+itxn_field Fee
+itxn_submit
+int 1
+return
