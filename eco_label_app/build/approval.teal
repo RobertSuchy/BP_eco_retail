@@ -2,23 +2,23 @@
 txn ApplicationID
 int 0
 ==
-bnz main_l17
+bnz main_l19
 txn OnCompletion
 int DeleteApplication
 ==
-bnz main_l16
+bnz main_l18
 txn OnCompletion
 int UpdateApplication
 ==
-bnz main_l15
+bnz main_l17
 txn OnCompletion
 int OptIn
 ==
-bnz main_l14
+bnz main_l16
 txn OnCompletion
 int CloseOut
 ==
-bnz main_l13
+bnz main_l15
 txn OnCompletion
 int NoOp
 ==
@@ -26,68 +26,56 @@ bnz main_l7
 err
 main_l7:
 txna ApplicationArgs 0
-byte "send"
+byte "send_reward"
 ==
-bnz main_l12
+bnz main_l14
 txna ApplicationArgs 0
-byte "c2c"
+byte "set_escrow"
 ==
-bnz main_l10
+bnz main_l13
+txna ApplicationArgs 0
+byte "create_asa"
+==
+bnz main_l11
 err
-main_l10:
-callsub c2c_2
 main_l11:
-int 0
-return
+callsub createasa_2
 main_l12:
 int 0
-callsub send_1
-b main_l11
-main_l13:
-int 0
 return
+main_l13:
+callsub setescrow_1
+b main_l12
 main_l14:
 int 0
-callsub init_0
-int 1
-return
+callsub sendreward_0
+b main_l12
 main_l15:
 int 0
 return
 main_l16:
-int 0
+int 1
 return
 main_l17:
+int 0
+return
+main_l18:
+int 0
+return
+main_l19:
 int 1
 return
 
-// init
-init_0:
+// send_reward
+sendreward_0:
 store 0
-load 0
-byte "customer"
-txna ApplicationArgs 0
-app_local_put
-load 0
-byte "reward"
-txna ApplicationArgs 1
-btoi
-app_local_put
-retsub
-
-// send
-send_1:
-store 1
 itxn_begin
 int pay
 itxn_field TypeEnum
-load 1
-byte "customer"
-app_local_get
+txna ApplicationArgs 1
 itxn_field Receiver
-load 1
-byte "reward"
-app_local_get
+txna ApplicationArgs 2
+btoi
 itxn_field Amount
 int 0
 itxn_field Fee
@@ -95,19 +83,36 @@ itxn_submit
 int 1
 return
 
-// c2c
-c2c_2:
-itxn_begin
-int appl
-itxn_field TypeEnum
+// set_escrow
+setescrow_1:
+txn Sender
+global CreatorAddress
+==
+assert
+byte "escrow"
 txna ApplicationArgs 1
-btoi
-txnas Applications
-itxn_field ApplicationID
-byte "send"
-itxn_field ApplicationArgs
-int 0
-itxn_field Fee
-itxn_submit
+app_global_put
+int 1
+return
+
+// create_asa
+createasa_2:
+global GroupSize
+int 2
+==
+assert
+gtxn 1 Sender
+byte "escrow"
+app_global_get
+==
+assert
+gtxn 1 TypeEnum
+int acfg
+==
+gtxn 1 ConfigAssetName
+byte "EcoLabel Coin"
+==
+&&
+assert
 int 1
 return
