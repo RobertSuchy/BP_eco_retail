@@ -25,7 +25,12 @@ def approval():
     # @Subroutine(TealType.none)
     # def add(account: Expr):
     #     return Seq(
-    #         App.localPut(account, local_reward, App.localGet(account, local_reward) + Txn.application_args[1]),
+
+
+
+
+
+
     #         Approve()
     #     )
 
@@ -37,6 +42,7 @@ def approval():
                 {
                     TxnField.type_enum: TxnType.Payment,
                     TxnField.receiver: Txn.application_args[1],
+                    # TxnField.amount: Int(1000),
                     TxnField.amount: Btoi(Txn.application_args[2]),
                     TxnField.fee: Int(0)
                 }

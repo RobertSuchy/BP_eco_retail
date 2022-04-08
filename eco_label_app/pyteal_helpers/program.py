@@ -9,8 +9,8 @@ from pyteal.ast import *
 
 def event(
     init: Expr = Reject(),
-    delete: Expr = Reject(),
-    update: Expr = Reject(),
+    delete: Expr = Approve(),
+    update: Expr = Approve(),
     opt_in: Expr = Reject(),
     close_out: Expr = Reject(),
     no_op: Expr = Reject(),

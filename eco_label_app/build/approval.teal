@@ -57,10 +57,10 @@ main_l16:
 int 1
 return
 main_l17:
-int 0
+int 1
 return
 main_l18:
-int 0
+int 1
 return
 main_l19:
 int 1
