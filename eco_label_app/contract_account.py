@@ -38,4 +38,4 @@ def contract_account(app_id):
 
 if __name__ == "__main__":
     arg = int(sys.argv[1])
-    print(compileTeal(contract_account(arg), Mode.Signature, version=5))
+    print(compileTeal(contract_account(arg), Mode.Signature, version=6))

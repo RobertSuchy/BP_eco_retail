@@ -7,11 +7,58 @@ from base64 import b64decode
 from typing import Tuple
 from algosdk.v2client.algod import AlgodClient
 from algosdk.future import transaction
-from algosdk import account
-from pyteal import compileTeal, Mode, Expr
-from .smart_contract import approval_program, clear_state_program
+from algosdk import account, mnemonic
+# from pyteal import compileTeal, Mode, Expr
+# from .smart_contract import approval_program, clear_state_program
 
 # Create your views here.
+
+
+ALGOD_ADDRESS = "http://localhost:4001"
+ALGOD_TOKEN = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+def get_algod_client() -> AlgodClient:
+    return AlgodClient(ALGOD_TOKEN, ALGOD_ADDRESS)
+
+
+@csrf_exempt
+def get_tokens(request):
+    algod_client = get_algod_client()
+    print(algod_client.suggested_params())
+    # mnemonic01 = "upon dose label level beach lizard rough square biology shy gentle know bubble face siren brother acoustic destroy roast palace stairs sustain owner able funny"
+    # acc01 = account.generate_account()
+    # acc01['pk'] = mnemonic.to_public_key(acc01[1])
+    # acc01['sk'] = mnemonic.to_private_key(mnemonic01)
+    # print("Public key: " + acc01['pk'])
+    # print(mnemonic.from_private_key(acc01[0]))
+    print(algod_client.suggested_params().fee)
+    params = algod_client.suggested_params()
+    # account_info = algod_client.account_info(account[0]['pk'])
+    # print(account_info)
+
+    return HttpResponse(status=200)
+
+
+@csrf_exempt
+def process_products(request):
+    input_body = loads(request.body)
+    print(input_body['customer_wallet'])
+    reward = 0
+    for item in input_body['products']:
+        reward += Products.objects.get(id=item['id']).rating * item['price'] * item['amount'] * 1000
+    print(reward)
+    # appCallTxn = transaction.ApplicationCallTxn(
+    #     sender=
+    # )
+    return HttpResponse(status=200)
+    
+
+@csrf_exempt
+def add_product(request):
+    input_body = loads(request.body)
+
+    return HttpResponse(status=200)
+    
 
 # APPROVAL_PROGRAM = b""
 # CLEAR_STATE_PROGRAM = b""
@@ -43,28 +90,3 @@ from .smart_contract import approval_program, clear_state_program
 #     txn = transaction.ApplicationCreateTxn(
 #         sender=sender
 #     )
-
-
-# def createToken():
-
-
-@csrf_exempt
-def process_products(request):
-    input_body = loads(request.body)
-    print(input_body['customer_wallet'])
-    reward = 0
-    for item in input_body['products']:
-        reward += Products.objects.get(id=item['id']).rating * item['price'] * item['amount'] * 1000
-    print(reward)
-    # appCallTxn = transaction.ApplicationCallTxn(
-    #     sender=
-    # )
-    return HttpResponse(status=200)
-    
-
-@csrf_exempt
-def add_product(request):
-    input_body = loads(request.body)
-
-    return HttpResponse(status=200)
-    

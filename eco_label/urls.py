@@ -21,5 +21,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('process-products/', views.process_products),
     path('add-product/', views.add_product),
+    path('get-tokens/', views.get_tokens),
+
 
 ]
