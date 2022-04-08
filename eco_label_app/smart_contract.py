@@ -1,7 +1,7 @@
 from re import L
 from pyteal import *
 from pyteal.ast.bytes import Bytes
-from pyteal_helpers import program
+from .pyteal_helpers import program
 
 
 def approval():

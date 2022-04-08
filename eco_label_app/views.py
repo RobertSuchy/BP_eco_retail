@@ -9,7 +9,7 @@ from algosdk.v2client.algod import AlgodClient
 from algosdk.future import transaction
 from algosdk import account
 from pyteal import compileTeal, Mode, Expr
-from .smart_contract import approval_program, clear_state_program
+# from .smart_contract import approval_program, clear_state_program
 
 # Create your views here.
 
