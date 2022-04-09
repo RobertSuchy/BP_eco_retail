@@ -7,8 +7,6 @@ from base64 import b64decode
 from typing import Tuple
 from algosdk.v2client.algod import AlgodClient
 from algosdk.future import transaction
-from algosdk import account
-from pyteal import compileTeal, Mode, Expr
 from algosdk import account, mnemonic
 # from pyteal import compileTeal, Mode, Expr
 # from .smart_contract import approval_program, clear_state_program
@@ -26,17 +24,19 @@ def get_algod_client() -> AlgodClient:
 @csrf_exempt
 def get_tokens(request):
     algod_client = get_algod_client()
-    print(algod_client.suggested_params())
+    # print(algod_client.suggested_params())
     # mnemonic01 = "upon dose label level beach lizard rough square biology shy gentle know bubble face siren brother acoustic destroy roast palace stairs sustain owner able funny"
-    # acc01 = account.generate_account()
+    acc01 = account.generate_account()
     # acc01['pk'] = mnemonic.to_public_key(acc01[1])
     # acc01['sk'] = mnemonic.to_private_key(mnemonic01)
     # print("Public key: " + acc01['pk'])
     # print(mnemonic.from_private_key(acc01[0]))
-    print(algod_client.suggested_params().fee)
     params = algod_client.suggested_params()
-    # account_info = algod_client.account_info(account[0]['pk'])
-    # print(account_info)
+    account_info = algod_client.account_info(acc01[1])
+    holding = None
+    i = 0
+    # for my_acc_info in account_info['assets']:
+
 
     return HttpResponse(status=200)
 

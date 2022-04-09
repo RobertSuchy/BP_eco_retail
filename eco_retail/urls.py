@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from eco_label_app import views
+from eco_retail_app import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
