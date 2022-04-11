@@ -1,21 +1,27 @@
+from click import confirm
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render
 from json import loads
+from pyteal import OnComplete
+
+from pytest import param
 from .models import *
 from base64 import b64decode
 from typing import Tuple
 from algosdk.v2client.algod import AlgodClient
 from algosdk.future import transaction
+from algosdk.future.transaction import AssetTransferTxn, ApplicationCallTxn, wait_for_confirmation
 from algosdk import account, mnemonic
 # from pyteal import compileTeal, Mode, Expr
 # from .smart_contract import approval_program, clear_state_program
 
 # Create your views here.
 
-
 ALGOD_ADDRESS = "http://localhost:4001"
 ALGOD_TOKEN = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+ASSET_ID = 20
+APP_ID = 17
 
 def get_algod_client() -> AlgodClient:
     return AlgodClient(ALGOD_TOKEN, ALGOD_ADDRESS)
@@ -24,19 +30,70 @@ def get_algod_client() -> AlgodClient:
 @csrf_exempt
 def get_tokens(request):
     algod_client = get_algod_client()
-    # print(algod_client.suggested_params())
-    # mnemonic01 = "upon dose label level beach lizard rough square biology shy gentle know bubble face siren brother acoustic destroy roast palace stairs sustain owner able funny"
-    acc01 = account.generate_account()
-    # acc01['pk'] = mnemonic.to_public_key(acc01[1])
-    # acc01['sk'] = mnemonic.to_private_key(mnemonic01)
+    mnemonic01 = "biology pulp scrub rebuild velvet question ring weasel legend gap merit gallery twenty toss unfair novel ancient output mesh present excess decide champion absent fish"
+    private_key = mnemonic.to_private_key(mnemonic01)
+    public_key = account.address_from_private_key(private_key)
+    # acc01 = account.generate_account()
     # print("Public key: " + acc01['pk'])
     # print(mnemonic.from_private_key(acc01[0]))
+    # print(acc01[0])
+    # print(acc01[1])
+    # print(algod_client.suggested_params())
     params = algod_client.suggested_params()
-    account_info = algod_client.account_info(acc01[1])
+    account_info = algod_client.account_info(public_key)
     holding = None
     i = 0
-    # for my_acc_info in account_info['assets']:
+    for my_acc_info in account_info['assets']:
+        asset = account_info['assets'][i]
+        i = i + 1
+        if (asset['asset-id'] == ASSET_ID):
+            holding = True
+            break
 
+    # for asset in account_info['assets']:
+    #     if (asset['asset-id'] == ASSET_ID):
+    #         holding = True
+    #         break
+
+    if not holding:
+        txn = AssetTransferTxn(
+            sender=public_key,
+            sp=params,
+            receiver=public_key,
+            amt=0,
+            index=ASSET_ID
+        )
+        stxn = txn.sign(private_key)
+        try:
+            txid = algod_client.send_transaction(stxn)
+            confirmed_txn = wait_for_confirmation(algod_client, txid, 4)
+            print("txID: ", txid)
+            print("round: ", confirmed_txn['confirmed-round'])
+        except Exception as err:
+            print(err)
+
+    app_args = [
+        b"send_asa",
+        1000
+    ]
+
+    txn = ApplicationCallTxn(
+        sender=public_key, 
+        sp=params, 
+        on_complete=transaction.OnComplete.NoOpOC,
+        index=APP_ID, 
+        app_args=app_args,
+        foreign_assets=[20]
+    )
+
+    stxn = txn.sign(private_key)
+    try:
+        txid = algod_client.send_transaction(stxn)
+        confirmed_txn = wait_for_confirmation(algod_client, txid, 4)
+        print("txID:", txid)
+        print("round:", confirmed_txn['confirmed-round'])
+    except Exception as err:
+        print(err)
 
     return HttpResponse(status=200)
 

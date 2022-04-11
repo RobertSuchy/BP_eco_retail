@@ -30,21 +30,21 @@ byte "send_reward"
 ==
 bnz main_l14
 txna ApplicationArgs 0
-byte "set_escrow"
+byte "create_asa"
 ==
 bnz main_l13
 txna ApplicationArgs 0
-byte "create_asa"
+byte "send_asa"
 ==
 bnz main_l11
 err
 main_l11:
-callsub createasa_2
+callsub sendasa_2
 main_l12:
 int 0
 return
 main_l13:
-callsub setescrow_1
+callsub createasa_1
 b main_l12
 main_l14:
 int 0
@@ -83,36 +83,47 @@ itxn_submit
 int 1
 return
 
-// set_escrow
-setescrow_1:
+// create_asa
+createasa_1:
 txn Sender
 global CreatorAddress
 ==
 assert
-byte "escrow"
-txna ApplicationArgs 1
-app_global_put
+itxn_begin
+int acfg
+itxn_field TypeEnum
+int 1000000
+itxn_field ConfigAssetTotal
+int 2
+itxn_field ConfigAssetDecimals
+byte "ER"
+itxn_field ConfigAssetUnitName
+byte "EcoRetail Coin"
+itxn_field ConfigAssetName
+global CurrentApplicationAddress
+itxn_field ConfigAssetManager
+global CurrentApplicationAddress
+itxn_field ConfigAssetReserve
+global CurrentApplicationAddress
+itxn_field ConfigAssetFreeze
+global CurrentApplicationAddress
+itxn_field ConfigAssetClawback
+itxn_submit
 int 1
 return
 
-// create_asa
-createasa_2:
-global GroupSize
-int 2
-==
-assert
-gtxn 1 Sender
-byte "escrow"
-app_global_get
-==
-assert
-gtxn 1 TypeEnum
-int acfg
-==
-gtxn 1 ConfigAssetName
-byte "EcoLabel Coin"
-==
-&&
-assert
+// send_asa
+sendasa_2:
+itxn_begin
+int axfer
+itxn_field TypeEnum
+txn Sender
+itxn_field AssetReceiver
+txna ApplicationArgs 1
+btoi
+itxn_field AssetAmount
+int 20
+itxn_field XferAsset
+itxn_submit
 int 1
 return

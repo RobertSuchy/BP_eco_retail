@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class EcoLabelAppConfig(AppConfig):
+class EcoRetailAppConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'eco_label_app'
+    name = 'eco_retail_app'
