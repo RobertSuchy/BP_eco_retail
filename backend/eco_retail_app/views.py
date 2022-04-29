@@ -1,14 +1,14 @@
-from click import confirm
+# from click import confirm
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import render
+# from django.shortcuts import render
 from json import loads
-from pyteal import OnComplete
+# from pyteal import OnComplete
 
-from pytest import param
+# from pytest import param
 from .models import *
-from base64 import b64decode
-from typing import Tuple
+# from base64 import b64decode
+# from typing import Tuple
 from algosdk.v2client.algod import AlgodClient
 from algosdk.future import transaction
 from algosdk.future.transaction import AssetTransferTxn, ApplicationCallTxn, wait_for_confirmation
