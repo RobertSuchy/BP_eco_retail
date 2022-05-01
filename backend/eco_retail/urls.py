@@ -22,6 +22,8 @@ urlpatterns = [
     path('process-products/', views.process_products),
     path('add-product/', views.add_product),
     path('get-tokens/', views.get_tokens),
-
-
+    path('auth/register/', views.get_tokens),
+    path('auth/login/', views.get_tokens),
+    path('auth/logout/', views.get_tokens),
+    path('auth/me/', views.get_tokens),
 ]

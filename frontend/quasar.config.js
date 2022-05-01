@@ -8,9 +8,7 @@
 // Configuration for your app
 // https://v2.quasar.dev/quasar-cli-webpack/quasar-config-js
 
-
 /* eslint-disable @typescript-eslint/no-var-requires */
-
 
 const { configure } = require('quasar/wrappers');
 
@@ -21,8 +19,8 @@ module.exports = configure(function (ctx) {
       tsCheckerConfig: {
         eslint: {
           enabled: true,
-          files: './src/**/*.{ts,tsx,js,jsx,vue}',
-        },
+          files: './src/**/*.{ts,tsx,js,jsx,vue}'
+        }
       }
     },
 
@@ -33,8 +31,8 @@ module.exports = configure(function (ctx) {
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli-webpack/boot-files
     boot: [
-      'axios',
-      'auth'
+    //   'axios',
+    //   'auth'
     ],
 
     // https://v2.quasar.dev/quasar-cli-webpack/quasar-config-js#Property%3A-css
@@ -53,12 +51,16 @@ module.exports = configure(function (ctx) {
       // 'roboto-font-latin-ext', // this or either 'roboto-font', NEVER both!
 
       'roboto-font', // optional, you are not bound to it
-      'material-icons', // optional, you are not bound to it
+      'material-icons' // optional, you are not bound to it
     ],
 
+    sourceFiles: { store: 'src/store/index.ts' },
     // Full list of options: https://v2.quasar.dev/quasar-cli-webpack/quasar-config-js#Property%3A-build
     build: {
-      vueRouterMode: 'hash', // available values: 'hash', 'history'
+      vueRouterMode: 'history', // available values: 'hash', 'history'
+      env: {
+        API_URL: process.env.API_URL || (ctx.dev ? 'http://localhost:8000' : 'https://prod.api.com')
+      }
 
       // transpile: false,
       // publicPath: '/',
@@ -121,10 +123,10 @@ module.exports = configure(function (ctx) {
       // manualPostHydrationTrigger: true,
 
       prodPort: 3000, // The default port that the production server should use
-                      // (gets superseded if process.env.PORT is specified at runtime)
+      // (gets superseded if process.env.PORT is specified at runtime)
 
       maxAge: 1000 * 60 * 60 * 24 * 30,
-        // Tell browser when a file from the server should expire from cache (in ms)
+      // Tell browser when a file from the server should expire from cache (in ms)
 
       // chainWebpackWebserver (/* chain */) {},
 
@@ -144,9 +146,9 @@ module.exports = configure(function (ctx) {
       // chainWebpackCustomSW (/* chain */) {},
 
       manifest: {
-        name: `BP_eco_retail`,
-        short_name: `BP_eco_retail`,
-        description: ``,
+        name: 'BP_eco_retail',
+        short_name: 'BP_eco_retail',
+        description: '',
         display: 'standalone',
         orientation: 'portrait',
         background_color: '#ffffff',

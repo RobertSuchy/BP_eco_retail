@@ -1,10 +1,13 @@
 from django.db import models
 
-# Create your models here.
+class User(models.Model):
+    email = models.CharField(max_length=255)
+    
 
-class Products(models.Model):
-    name = models.CharField(max_length=255, blank=True, null=True)
-    rating = models.FloatField(blank=True, null=True)
+
+class Product(models.Model):
+    name = models.CharField(max_length=255)
+    rating = models.FloatField()
     created_at = models.DateTimeField()
     updated_at = models.DateTimeField()
 
