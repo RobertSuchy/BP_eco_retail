@@ -2,7 +2,7 @@
   <q-layout view="hHh lpR fff">
 
     <q-header elevated class="bg-primary text-white" height-hint="98">
-      <q-toolbar>
+      <q-toolbar class="flex">
         <q-btn dense flat round icon="menu" @click="toggleLeftDrawer" />
 
         <q-toolbar-title>
@@ -11,6 +11,8 @@
           </q-avatar>
           EcoRetail
         </q-toolbar-title>
+
+        <q-btn round icon="logout" @click="logout" />
       </q-toolbar>
 
       <!-- <q-tabs align="left">
@@ -18,6 +20,7 @@
         <q-route-tab to="/page2" label="Page Two" />
         <q-route-tab to="/page3" label="Page Three" />
       </q-tabs> -->
+
     </q-header>
 
     <q-drawer show-if-above v-model="leftDrawerOpen" side="left" bordered>
@@ -55,6 +58,11 @@ export default {
       toggleLeftDrawer () {
         leftDrawerOpen.value = !leftDrawerOpen.value
       }
+    }
+  },
+  methods: {
+    logout() {
+      this.$store.dispatch('auth/logout').then(() => this.$router.push({ name: 'home' }))
     }
   }
 }

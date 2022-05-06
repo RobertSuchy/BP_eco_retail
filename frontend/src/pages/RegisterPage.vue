@@ -95,21 +95,54 @@ export default defineComponent({
     return {
       regForm: {
         email: '',
-        password: '',
-        passwordConfirmation: '',
         userType: '',
-        wallet: ''
+        wallet: '',
+        password: '',
+        passwordConfirmation: ''
       },
       passwordVisible: false
     }
   },
   methods: {
     async submitRegForm() {
-      const myAlgoConnect = new MyAlgoConnect()
-      const accountsSharedByUser = await myAlgoConnect.connect()
-      this.regForm.wallet = accountsSharedByUser[0].address
-      txnService.optIn(this.regForm.wallet)
-      // this.$store.dispatch('auth/register', this.regForm).then(() => this.$router.push({ name: 'login' }))
+      if (!this.regForm.email) {
+        this.$q.notify({
+          type: 'negative',
+          position: 'bottom',
+          message: 'Email is required!'
+        })
+      } else if (!this.regForm.userType) {
+        this.$q.notify({
+          type: 'negative',
+          position: 'bottom',
+          message: 'User type is required!'
+        })
+      } else if (!this.regForm.password || !this.regForm.passwordConfirmation) {
+        this.$q.notify({
+          type: 'negative',
+          position: 'bottom',
+          message: 'Password is required!'
+        })
+      } else if (this.regForm.password !== this.regForm.passwordConfirmation) {
+        this.$q.notify({
+          type: 'negative',
+          position: 'bottom',
+          message: 'Passwords do not match!'
+        })
+      } else {
+        const myAlgoConnect = new MyAlgoConnect()
+        const accountsSharedByUser = await myAlgoConnect.connect()
+        this.regForm.wallet = accountsSharedByUser[0].address
+
+        this.$store.dispatch('auth/register', this.regForm).then(() => this.$router.push({ name: 'login' }))
+
+        txnService.optInGetTxn(this.regForm.wallet).then(async (txn) => {
+          if (txn !== 'None') {
+            const signedTxn = await myAlgoConnect.signTransaction(txn)
+            txnService.optInSendTxn(Buffer.from(signedTxn.blob).toString('base64'))
+          }
+        })
+      }
     }
   }
 })

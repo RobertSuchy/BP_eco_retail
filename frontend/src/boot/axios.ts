@@ -17,7 +17,7 @@ declare module '@vue/runtime-core' {
 // for each client)
 const api = axios.create({
   baseURL: process.env.API_URL,
-  withCredentials: true,
+  withCredentials: false,
   headers: {}
 })
 
@@ -29,7 +29,7 @@ api.interceptors.request.use(
     const token = authManager.getToken()
 
     if (token !== null) {
-      config.headers.Authorization = `Bearer ${token}`
+      config.headers.Authorization = `Token ${token}`
     }
 
     if (DEBUG) {

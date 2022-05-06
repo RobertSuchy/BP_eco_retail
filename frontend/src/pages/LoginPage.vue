@@ -6,12 +6,12 @@
           Login
         </div>
       </q-card-section>
-      <q-form class="q-gutter-md" @submit.prevent="submitRegistration">
+      <q-form class="q-gutter-md">
         <q-card-section class="q-gutter-y-lg">
           <q-input
                   name="email"
                   type="email"
-                  v-model="loginForm.email"
+                  v-model="loginForm.username"
                   label="Email"
                   dense
                   filled
@@ -61,17 +61,30 @@ export default defineComponent({
   data() {
     return {
       loginForm: {
-        email: '',
-        password: '',
-        passwordConfirmation: '',
-        userType: ''
+        // field username contains email (Django rest_framework.authtoken requires username)
+        username: '',
+        password: ''
       },
       passwordVisible: false
     }
   },
   methods: {
     submitLoginForm() {
-      this.$store.dispatch('auth/register', this.loginForm).then(() => this.$router.push({ name: 'login' }))
+      if (!this.loginForm.username) {
+        this.$q.notify({
+          type: 'negative',
+          position: 'bottom',
+          message: 'Email is required!'
+        })
+      } else if (!this.loginForm.password) {
+        this.$q.notify({
+          type: 'negative',
+          position: 'bottom',
+          message: 'Password is required!'
+        })
+      } else {
+        this.$store.dispatch('auth/login', this.loginForm).then(() => this.$router.push({ name: 'home' }))
+      }
     }
   }
 })

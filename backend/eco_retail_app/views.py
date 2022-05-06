@@ -2,49 +2,76 @@ from django.http import HttpResponse
 from django.views.generic import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
-import json
+from django.views import View
+from django.utils.decorators import method_decorator
+from rest_framework.views import APIView
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.generics import GenericAPIView
+from rest_framework.response import Response
+from django.contrib.auth import get_user_model
 from .models import *
+import json
+
 from algosdk.v2client.algod import AlgodClient
 from algosdk.future import transaction
 from algosdk.future.transaction import AssetTransferTxn, ApplicationCallTxn, wait_for_confirmation
 from algosdk import account, mnemonic
 from algosdk import encoding
 
+@csrf_exempt
+def auth_register(request):
+    if (request.method == 'POST'):
+        request_body = json.loads(request.body)
+        now = timezone.now()
+        user_model = get_user_model()
+        user = user_model.objects.create_user(
+            email=request_body['email'],
+            wallet=request_body['wallet'],
+            user_type=request_body['userType'],
+            password=request_body['password'],
+            created_at=now,
+            updated_at=now
+        )    
+        print(user)
+        return HttpResponse(status=200)
 
-class AuthRegister(View):
-    def get(self, requwst):
-        return HttpResponse()
+
+@method_decorator(csrf_exempt, name='dispatch')
+class AuthLogout(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        request.user.auth_token.delete()
+        content = {'message': 'Logout successfully'}
+        return Response(content, status=200)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class AuthMe(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        print(request.user)
+        content = {'message': 'Auth successfully'}
+        return Response(content, status=200)
 
 
 ALGOD_ADDRESS = "http://localhost:4001"
 ALGOD_TOKEN = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-ASSET_ID = 20
-APP_ID = 17
+ASSET_ID = 4
+APP_ID = 1
 
 
 def get_algod_client() -> AlgodClient:
     return AlgodClient(ALGOD_TOKEN, ALGOD_ADDRESS)
 
-
 @csrf_exempt
-def get_tokens(request):
-    print(".............................................")
-    print(request.body)
-    print(".............................................")
+def opt_in_get_txn(request):
     public_key = request.body.decode()
-    print(".............................................")
-    print(public_key)
-    print(".............................................")
     algod_client = get_algod_client()
-    # mnemonic01 = "biology pulp scrub rebuild velvet question ring weasel legend gap merit gallery twenty toss unfair novel ancient output mesh present excess decide champion absent fish"
-    # private_key = mnemonic.to_private_key(mnemonic01)
-    # public_key = account.address_from_private_key(private_key)
-    # acc01 = account.generate_account()
-    # print("Public key: " + acc01['pk'])
-    # print(mnemonic.from_private_key(acc01[0]))
-    # print(acc01[0])
-    # print(acc01[1])
-    # print(algod_client.suggested_params())
     params = algod_client.suggested_params()
     account_info = algod_client.account_info(public_key)
     holding = None
@@ -62,16 +89,36 @@ def get_tokens(request):
             sp=params,
             receiver=public_key,
             amt=0,
-            index=ASSET_ID
+            index=
+            ASSET_ID
         )
-        # stxn = txn.sign(private_key)
-        # try:
-        #     txid = algod_client.send_transaction(stxn)
-        #     confirmed_txn = wait_for_confirmation(algod_client, txid, 4)
-        #     print("txID: ", txid)
-        #     print("round: ", confirmed_txn['confirmed-round'])
-        # except Exception as err:
-        #     print(err)
+
+        return HttpResponse(encoding.msgpack_encode(txn), status=200)
+
+    return HttpResponse(None, status=200)
+
+
+@csrf_exempt
+def opt_in_send_txn(request):
+    algod_client = get_algod_client()
+    signed_txn = encoding.msgpack_decode(request.body)
+    print(signed_txn)
+    try:
+        txid = algod_client.send_transaction(signed_txn)
+        confirmed_txn = wait_for_confirmation(algod_client, txid, 4)
+        print("txID: ", txid)
+        print("round: ", confirmed_txn['confirmed-round'])
+    except Exception as err:
+        print(err)
+
+    return HttpResponse(status=200)
+
+@csrf_exempt
+def get_tokens(request):
+    algod_client = get_algod_client()
+    # private_key = mnemonic.to_private_key(mnemonic01)
+    # public_key = account.address_from_private_key(private_key)
+    params = algod_client.suggested_params()
 
     # app_args = [
     #     b"send_asa",
@@ -96,14 +143,6 @@ def get_tokens(request):
     # except Exception as err:
     #     print(err)
 
-    print(".............................................")
-    print(txn)
-    print(".............................................")
-
-    print(".............................................")
-    print(encoding.msgpack_encode(txn))
-    print(".............................................")
-
     return HttpResponse(encoding.msgpack_encode(txn), status=200)
 
 
@@ -123,11 +162,11 @@ def process_products(request):
 
 @csrf_exempt
 def add_product(request):
-    input_body = json.loads(request.body)
+    request_body = json.loads(request.body)
     now = timezone.now()
     Product.objects.create(
-        name=input_body['name'],
-        rating=input_body['rating'],
+        name=request_body['name'],
+        rating=request_body['rating'],
         created_at=now,
         updated_at=now
     )    

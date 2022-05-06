@@ -16,14 +16,17 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from eco_retail_app import views
+from rest_framework.authtoken import views as authviews
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('process-products/', views.process_products),
-    path('add-product/', views.add_product),
-    path('get-tokens/', views.get_tokens),
-    path('auth/register/', views.get_tokens),
-    path('auth/login/', views.get_tokens),
-    path('auth/logout/', views.get_tokens),
-    path('auth/me/', views.get_tokens),
+    path('api/admin/', admin.site.urls),
+    path('api/process-products/', views.process_products),
+    path('api/add-product/', views.add_product),
+    path('api/get-tokens/', views.get_tokens),
+    path('api/opt-in-get-txn/', views.opt_in_get_txn),
+    path('api/opt-in-send-txn/', views.opt_in_send_txn),
+    path('api/auth/register/', views.auth_register),
+    path('api/auth/login/', authviews.obtain_auth_token),
+    path('api/auth/logout/', views.AuthLogout.as_view()),
+    path('api/auth/me/', views.AuthMe.as_view()),
 ]

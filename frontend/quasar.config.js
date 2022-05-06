@@ -59,7 +59,12 @@ module.exports = configure(function (ctx) {
     build: {
       vueRouterMode: 'history', // available values: 'hash', 'history'
       env: {
-        API_URL: process.env.API_URL || (ctx.dev ? 'http://localhost:8000' : 'https://prod.api.com')
+        API_URL: process.env.API_URL || (ctx.dev ? 'http://localhost:8000/api' : 'http://ecoretail.tk/api')
+      },
+
+      chainWebpack (chain) {
+        const nodePolyfillWebpackPlugin = require('node-polyfill-webpack-plugin')
+        chain.plugin('node-polyfill').use(nodePolyfillWebpackPlugin)
       }
 
       // transpile: false,
@@ -108,7 +113,9 @@ module.exports = configure(function (ctx) {
       // directives: [],
 
       // Quasar plugins
-      plugins: []
+      plugins: [
+        'Notify'
+      ]
     },
 
     // animations: 'all', // --- includes all animations

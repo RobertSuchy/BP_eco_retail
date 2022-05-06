@@ -1,5 +1,5 @@
 export interface ApiToken {
-    type: 'bearer'
+    type: 'token'
     token: string
     expires_at?: string
     expires_in?: number
@@ -7,6 +7,8 @@ export interface ApiToken {
 
 export interface RegisterData {
     email: string
+    userType: string
+    wallet: string
     password: string
     passwordConfirmation: string
 }
@@ -20,6 +22,8 @@ export interface LoginCredentials {
 export interface User {
     id: number
     email: string
+    wallet: string
+    userType: string
     createdAt: string,
     updatedAt: string
 }
