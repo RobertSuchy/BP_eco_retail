@@ -1,3 +1,4 @@
+import email
 from django.http import HttpResponse
 from django.views.generic import View
 from django.views.decorators.csrf import csrf_exempt
@@ -7,9 +8,10 @@ from django.utils.decorators import method_decorator
 from rest_framework.views import APIView
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
+
+from .serializers import UserSerializer
 from .models import *
 import json
 
@@ -19,22 +21,115 @@ from algosdk.future.transaction import AssetTransferTxn, ApplicationCallTxn, wai
 from algosdk import account, mnemonic
 from algosdk import encoding
 
-@csrf_exempt
-def auth_register(request):
-    if (request.method == 'POST'):
+
+ALGOD_ADDRESS = "http://localhost:4001"
+ALGOD_TOKEN = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+ASSET_ID = 4
+APP_ID = 10
+ALGOD_CLIENT = AlgodClient(ALGOD_TOKEN, ALGOD_ADDRESS)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class OptInAssetGetTxn(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request):
+        body = json.loads(request.body)
+        public_key = body['wallet']
+        params = ALGOD_CLIENT.suggested_params()
+        account_info = ALGOD_CLIENT.account_info(public_key)
+        holding = False
+        for asset in account_info['assets']:
+            if asset['asset-id'] == ASSET_ID:
+                holding = True
+                break
+
+        if not holding:
+            txn = AssetTransferTxn(
+                sender=public_key,
+                sp=params,
+                receiver=public_key,
+                amt=0,
+                index=ASSET_ID
+            )
+            return Response(encoding.msgpack_encode(txn))
+
+        return Response(None)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class OptInContractGetTxn(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request):
+        body = json.loads(request.body)
+        public_key = body['wallet']
+        params = ALGOD_CLIENT.suggested_params()
+        account_info = ALGOD_CLIENT.account_info(public_key)
+        opted_in = False
+        for app in account_info['apps-local-state']:
+            if app['id'] == APP_ID:
+                opted_in = True
+                break
+
+        if not opted_in:
+            txn = transaction.ApplicationOptInTxn(
+                sender=public_key,
+                sp=params,
+                index=APP_ID,
+                app_args=body['user_type']
+            )
+            return Response(encoding.msgpack_encode(txn))
+
+        return Response(None)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class OptInSendTxn(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request):
+        signed_txn = encoding.future_msgpack_decode(request.body)
+        try:
+            txid = ALGOD_CLIENT.send_transaction(signed_txn)
+            confirmed_txn = wait_for_confirmation(ALGOD_CLIENT, txid, 4)
+            print("txID: ", txid)
+            print("round: ", confirmed_txn['confirmed-round'])
+        except Exception as err:
+            print(err)
+            return Response('err')
+
+        return Response('opted-in')
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class AuthRegister(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request):
         request_body = json.loads(request.body)
         now = timezone.now()
         user_model = get_user_model()
-        user = user_model.objects.create_user(
-            email=request_body['email'],
-            wallet=request_body['wallet'],
-            user_type=request_body['userType'],
-            password=request_body['password'],
-            created_at=now,
-            updated_at=now
-        )    
-        print(user)
-        return HttpResponse(status=200)
+        try:
+            user = user_model.objects.create_user(
+                email=request_body['email'],
+                user_type=request_body['userType'],
+                wallet=request_body['wallet'],
+                password=request_body['password'],
+                created_at=now,
+                updated_at=now
+            )    
+            serializer = UserSerializer(user)
+            return Response(serializer.data)
+        
+        except Exception as err:
+            print(err)
+            return Response(status=500)
+
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -45,7 +140,7 @@ class AuthLogout(APIView):
     def post(self, request):
         request.user.auth_token.delete()
         content = {'message': 'Logout successfully'}
-        return Response(content, status=200)
+        return Response(content)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -54,64 +149,10 @@ class AuthMe(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        print(request.user)
-        content = {'message': 'Auth successfully'}
-        return Response(content, status=200)
+        user = request.user
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
 
-
-ALGOD_ADDRESS = "http://localhost:4001"
-ALGOD_TOKEN = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-ASSET_ID = 4
-APP_ID = 1
-
-
-def get_algod_client() -> AlgodClient:
-    return AlgodClient(ALGOD_TOKEN, ALGOD_ADDRESS)
-
-@csrf_exempt
-def opt_in_get_txn(request):
-    public_key = request.body.decode()
-    algod_client = get_algod_client()
-    params = algod_client.suggested_params()
-    account_info = algod_client.account_info(public_key)
-    holding = None
-    i = 0
-    for my_acc_info in account_info['assets']:
-        asset = account_info['assets'][i]
-        i = i + 1
-        if (asset['asset-id'] == ASSET_ID):
-            holding = True
-            break
-
-    if not holding:
-        txn = AssetTransferTxn(
-            sender=public_key,
-            sp=params,
-            receiver=public_key,
-            amt=0,
-            index=
-            ASSET_ID
-        )
-
-        return HttpResponse(encoding.msgpack_encode(txn), status=200)
-
-    return HttpResponse(None, status=200)
-
-
-@csrf_exempt
-def opt_in_send_txn(request):
-    algod_client = get_algod_client()
-    signed_txn = encoding.msgpack_decode(request.body)
-    print(signed_txn)
-    try:
-        txid = algod_client.send_transaction(signed_txn)
-        confirmed_txn = wait_for_confirmation(algod_client, txid, 4)
-        print("txID: ", txid)
-        print("round: ", confirmed_txn['confirmed-round'])
-    except Exception as err:
-        print(err)
-
-    return HttpResponse(status=200)
 
 @csrf_exempt
 def get_tokens(request):
@@ -143,7 +184,7 @@ def get_tokens(request):
     # except Exception as err:
     #     print(err)
 
-    return HttpResponse(encoding.msgpack_encode(txn), status=200)
+    return HttpResponse(encoding.msgpack_encode(txn))
 
 
 @csrf_exempt
@@ -157,7 +198,7 @@ def process_products(request):
     # appCallTxn = transaction.ApplicationCallTxn(
     #     sender=
     # )
-    return HttpResponse(status=200)
+    return HttpResponse()
     
 
 @csrf_exempt
@@ -170,5 +211,4 @@ def add_product(request):
         created_at=now,
         updated_at=now
     )    
-    return HttpResponse(status=200)
-    
+    return HttpResponse()

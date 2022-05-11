@@ -1,8 +1,13 @@
 import { api } from 'src/boot/axios'
 
 class TxnService {
-  async optInGetTxn (wallet: string) {
-    const response = await api.post('opt-in-get-txn/', wallet)
+  async optInAssetGetTxn (wallet: string) {
+    const response = await api.post('opt-in-asset-get-txn/', wallet)
+    return response.data
+  }
+
+  async optInContractGetTxn (wallet: string) {
+    const response = await api.post('opt-in-contract-get-txn/', wallet)
     return response.data
   }
 

@@ -39,21 +39,23 @@ byte "send_asa"
 bnz main_l11
 err
 main_l11:
-callsub sendasa_2
+callsub sendasa_3
 main_l12:
 int 0
 return
 main_l13:
-callsub createasa_1
+callsub createasa_2
 b main_l12
 main_l14:
 int 0
-callsub sendreward_0
+callsub sendreward_1
 b main_l12
 main_l15:
 int 0
 return
 main_l16:
+int 0
+callsub optin_0
 int 1
 return
 main_l17:
@@ -66,9 +68,18 @@ main_l19:
 int 1
 return
 
-// send_reward
-sendreward_0:
+// opt_in
+optin_0:
 store 0
+load 0
+byte "user_type"
+txna ApplicationArgs 1
+app_local_put
+retsub
+
+// send_reward
+sendreward_1:
+store 1
 itxn_begin
 int pay
 itxn_field TypeEnum
@@ -84,7 +95,7 @@ int 1
 return
 
 // create_asa
-createasa_1:
+createasa_2:
 txn Sender
 global CreatorAddress
 ==
@@ -113,7 +124,7 @@ int 1
 return
 
 // send_asa
-sendasa_2:
+sendasa_3:
 itxn_begin
 int axfer
 itxn_field TypeEnum

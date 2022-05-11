@@ -6,7 +6,7 @@
           Login
         </div>
       </q-card-section>
-      <q-form class="q-gutter-md">
+      <q-form class="q-gutter-md" @submit.prevent="submitLoginForm">
         <q-card-section class="q-gutter-y-lg">
           <q-input
                   name="email"
@@ -44,7 +44,7 @@
         </q-card-section>
 
         <q-card-actions class="flex justify-center q-gutter-md q-mt-xs">
-          <q-btn outline rounded color="secondary" size="md" class="full-width q-mb-lg" label="Login" @click="submitLoginForm" />
+          <q-btn outline rounded color="secondary" size="md" class="full-width q-mb-lg" label="Login" type="submit" />
           Don't have an account?
           <q-btn outline rounded size="md" class="full-width" label="Register" :to="{ name:'register' }" />
         </q-card-actions>

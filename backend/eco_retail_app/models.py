@@ -44,8 +44,8 @@ class User(AbstractBaseUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['user_type', 'wallet']
 
-    def __self__(self):
-        return self
+    def __str__(self):
+        return self.email
 
     class Meta:
         db_table = 'users'

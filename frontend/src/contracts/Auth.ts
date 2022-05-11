@@ -22,8 +22,6 @@ export interface LoginCredentials {
 export interface User {
     id: number
     email: string
-    wallet: string
     userType: string
-    createdAt: string,
-    updatedAt: string
+    wallet: string
 }

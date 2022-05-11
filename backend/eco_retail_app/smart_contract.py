@@ -5,15 +5,20 @@ from pyteal_helpers import program
 
 
 def approval():
-    global_escrow = Bytes("escrow") # byteslice
-    # local_customer = Bytes("customer") # byteslice
+    # global_escrow = Bytes("escrow") # byteslice
+    local_user_type = Bytes("user_type") # byteslice
     # local_reward = Bytes("reward") # uint64
     
     op_send_reward = Bytes("send_reward")
-    op_set_escrow = Bytes("set_escrow")
+    # op_set_escrow = Bytes("set_escrow")
     op_create_asa = Bytes("create_asa")
     op_send_asa = Bytes("send_asa")
     # op_c2c = Bytes("c2c")
+
+
+    @Subroutine(TealType.none)
+    def opt_in(account: Expr):
+        return App.localPut(account, local_user_type, Txn.application_args[1])
 
 
     @Subroutine(TealType.none)
@@ -123,8 +128,10 @@ def approval():
 
     return program.event(
         init = Approve(),
+        delete = Approve(),
+        update=Approve(),
         opt_in = Seq( 
-            # init(Int(0)),
+            opt_in(Int(0)),
             Approve()
         ),
         no_op = Seq(

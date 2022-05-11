@@ -6,7 +6,7 @@
           Register
         </div>
       </q-card-section>
-      <q-form class="q-gutter-md">
+      <q-form class="q-gutter-md" @submit.prevent="submitRegForm">
         <q-card-section class="q-gutter-y-lg">
           <q-input
                   name="email"
@@ -75,7 +75,7 @@
         </q-card-section>
 
         <q-card-actions class="flex justify-center q-gutter-md q-mt-xs">
-          <q-btn outline rounded color="secondary" size="md" class="full-width q-mb-lg" label="Register" @click="submitRegForm" />
+          <q-btn outline rounded color="secondary" size="md" class="full-width q-mb-lg" label="Register" type="submit" />
           Already have an account?
           <q-btn outline rounded size="md" class="full-width" label="Login" :to="{ name:'login' }" />
         </q-card-actions>
@@ -133,16 +133,102 @@ export default defineComponent({
         const myAlgoConnect = new MyAlgoConnect()
         const accountsSharedByUser = await myAlgoConnect.connect()
         this.regForm.wallet = accountsSharedByUser[0].address
-
-        this.$store.dispatch('auth/register', this.regForm).then(() => this.$router.push({ name: 'login' }))
-
-        txnService.optInGetTxn(this.regForm.wallet).then(async (txn) => {
-          if (txn !== 'None') {
-            const signedTxn = await myAlgoConnect.signTransaction(txn)
-            txnService.optInSendTxn(Buffer.from(signedTxn.blob).toString('base64'))
+        this.optInAsset(myAlgoConnect).then((result) => {
+          if (result) {
+            this.optInContract(myAlgoConnect).then((result) => {
+              if (result) {
+                this.$store.dispatch('auth/register', this.regForm).then((user) => {
+                  if (user) {
+                    this.$q.notify({
+                      type: 'positive',
+                      position: 'bottom',
+                      message: 'Registration successful!'
+                    })
+                    this.$router.push({ name: 'login' })
+                  }
+                }).catch(() => {
+                  this.$q.notify({
+                    type: 'negative',
+                    position: 'bottom',
+                    message: 'Registration unsuccessful! Email or wallet already used!'
+                  })
+                })
+              }
+            })
           }
         })
       }
+    },
+
+    async optInAsset(myAlgoConnect: MyAlgoConnect): Promise<boolean | undefined> {
+      const data = {
+        wallet: this.regForm.wallet
+      }
+      return txnService.optInAssetGetTxn(JSON.stringify(data)).then(async (txn) => {
+        if (!txn) {
+          this.$q.notify({
+            type: 'positive',
+            position: 'bottom',
+            message: 'You have already added our EcoRetail token to your Algorand wallet!'
+          })
+          return true
+        }
+
+        const signedTxn = await myAlgoConnect.signTransaction(txn)
+        return txnService.optInSendTxn(Buffer.from(signedTxn.blob).toString('base64')).then((response) => {
+          if (response === 'err') {
+            this.$q.notify({
+              type: 'negative',
+              position: 'bottom',
+              message: 'You need at least 1000 microAlgos to opt-in our EcoRetail token!'
+            })
+            return false
+          }
+
+          this.$q.notify({
+            type: 'positive',
+            position: 'bottom',
+            message: 'Successfully added our EcoRetail token to your Algorand wallet!'
+          })
+          return true
+        })
+      })
+    },
+
+    async optInContract(myAlgoConnect: MyAlgoConnect): Promise<boolean | undefined> {
+      const data = {
+        wallet: this.regForm.wallet,
+        user_type: this.regForm.userType
+      }
+      return txnService.optInContractGetTxn(JSON.stringify(data)).then(async (txn) => {
+        if (!txn) {
+          this.$q.notify({
+            type: 'positive',
+            position: 'bottom',
+            message: 'You have already opted-in our EcoRetail smart contract!'
+          })
+          return true
+        }
+
+        const signedTxn = await myAlgoConnect.signTransaction(txn)
+        return txnService.optInSendTxn(Buffer.from(signedTxn.blob).toString('base64')).then((response) => {
+          if (response === 'err') {
+            this.$q.notify({
+              type: 'negative',
+              position: 'bottom',
+              message: 'You need at least 1000 microAlgos to opt-in our smart contract!'
+            })
+            return false
+          }
+
+          this.$q.notify({
+            type: 'positive',
+            position: 'bottom',
+            message: 'Successfully opted-in our smart contract, now you are ready to register and use our application!'
+          })
+          return true
+        })
+      })
     }
   }
 })
