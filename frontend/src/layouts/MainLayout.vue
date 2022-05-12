@@ -1,10 +1,8 @@
 <template>
   <q-layout view="hHh lpR fff">
 
-    <q-header elevated class="bg-primary text-white" height-hint="98">
+    <q-header elevated class="bg-green-10 text-white" height-hint="98">
       <q-toolbar class="flex">
-        <q-btn dense flat round icon="menu" @click="toggleLeftDrawer" />
-
         <q-toolbar-title>
           <q-avatar>
             <q-icon name="eco" color="green" size="30px" />
@@ -12,26 +10,23 @@
           EcoRetail
         </q-toolbar-title>
 
-        <q-btn round icon="logout" @click="logout" />
+        <q-btn v-if="isAuthenticated" round icon="logout" @click="logout" />
       </q-toolbar>
 
-      <!-- <q-tabs align="left">
-        <q-route-tab to="/page1" label="Page One" />
-        <q-route-tab to="/page2" label="Page Two" />
-        <q-route-tab to="/page3" label="Page Three" />
-      </q-tabs> -->
-
+      <q-tabs class="bg-green-9" align="left">
+        <q-route-tab :to="{ name:'home' }" label="Home" />
+        <q-route-tab v-if="!isAuthenticated" :to="{ name:'login' }" label="Login" />
+        <q-route-tab v-if="!isAuthenticated" :to="{ name:'register' }" label="Register" />
+        <q-route-tab v-if="isAuthenticated" :to="{ name:'user' }" label="My account" />
+        <q-route-tab v-if="isAuthenticated && getUser.userType === 'customer'" :to="{ name:'user' }" label="test" />
+      </q-tabs>
     </q-header>
-
-    <q-drawer show-if-above v-model="leftDrawerOpen" side="left" bordered>
-      <!-- drawer content -->
-    </q-drawer>
 
     <q-page-container>
       <router-view />
     </q-page-container>
 
-    <q-footer elevated class="bg-grey-8 text-white">
+    <q-footer elevated class="bg-blue-grey-10 text-white">
       <q-toolbar>
         <q-toolbar-title>
           <q-avatar>
@@ -47,19 +42,16 @@
 </template>
 
 <script>
-import { ref } from 'vue'
+import { mapGetters } from 'vuex'
 
 export default {
-  setup () {
-    const leftDrawerOpen = ref(false)
-
-    return {
-      leftDrawerOpen,
-      toggleLeftDrawer () {
-        leftDrawerOpen.value = !leftDrawerOpen.value
-      }
-    }
+  computed: {
+    ...mapGetters('auth', {
+      isAuthenticated: 'isAuthenticated',
+      getUser: 'getUser'
+    })
   },
+
   methods: {
     logout() {
       this.$store.dispatch('auth/logout').then(() => this.$router.push({ name: 'home' }))

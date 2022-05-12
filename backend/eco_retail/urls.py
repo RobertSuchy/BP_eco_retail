@@ -30,4 +30,5 @@ urlpatterns = [
     path('api/auth/login/', authviews.obtain_auth_token),
     path('api/auth/logout/', views.AuthLogout.as_view()),
     path('api/auth/me/', views.AuthMe.as_view()),
+    path('api/get-account-balance/', views.GetAccountBalance.as_view()),
 ]

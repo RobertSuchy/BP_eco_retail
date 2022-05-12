@@ -5,7 +5,8 @@ import { RouteLocationNormalized, RouteLocationRaw } from 'vue-router'
 declare module 'vue-router' {
   interface RouteMeta {
     requiresAuth?: boolean,
-    guestOnly?: boolean
+    guestOnly?: boolean,
+    byUserType?: boolean
   }
 }
 
@@ -36,6 +37,23 @@ export default boot(({ router, store }) => {
     // route is only for guests so redirect to home
     if (to.meta.guestOnly && isAuthenticated) {
       return { name: 'home' }
+    }
+
+    if (to.meta.byUserType && isAuthenticated) {
+      const userType = store.state.auth.user.userType
+      if (to.name !== userType) {
+        switch (userType) {
+          case 'customer': {
+            return { name: 'customer' }
+          }
+          case 'chainStore': {
+            return { name: 'chainStore' }
+          }
+          case 'producer': {
+            return { name: 'producer' }
+          }
+        }
+      }
     }
   })
 })

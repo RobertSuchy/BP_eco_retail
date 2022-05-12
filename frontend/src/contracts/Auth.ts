@@ -24,4 +24,6 @@ export interface User {
     email: string
     userType: string
     wallet: string
+    algos: number
+    ecoTokens: number
 }

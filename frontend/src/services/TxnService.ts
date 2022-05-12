@@ -15,6 +15,11 @@ class TxnService {
     const response = await api.post('opt-in-send-txn/', signedTxn)
     return response.data
   }
+
+  async getAccountBalance (wallet: string) {
+    const response = await api.post('get-account-balance/', wallet)
+    return response.data
+  }
 }
 
 export default new TxnService()

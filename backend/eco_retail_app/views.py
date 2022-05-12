@@ -154,6 +154,31 @@ class AuthMe(APIView):
         return Response(serializer.data)
 
 
+@method_decorator(csrf_exempt, name='dispatch')
+class GetAccountBalance(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        body = json.loads(request.body)
+        public_key = body['wallet']
+        account_info = ALGOD_CLIENT.account_info(public_key)
+        print(account_info)
+        algos = account_info['amount'] / 1_000_000
+        ecoTokens = 0
+        for asset in account_info['assets']:
+            if asset['asset-id'] == ASSET_ID:
+                ecoTokens = asset['amount']
+                break
+
+        response = {
+            'algos': algos,
+            'ecoTokens': ecoTokens
+        }
+
+        return Response(response)
+
+
 @csrf_exempt
 def get_tokens(request):
     algod_client = get_algod_client()

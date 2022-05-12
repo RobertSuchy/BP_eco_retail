@@ -1,6 +1,6 @@
 <template>
   <q-page class="row items-center justify-evenly">
-    <q-card class="q-ma-lg q-pa-lg" style="width: 450px">
+    <q-card class="q-ma-md q-pa-md" style="width: 450px">
       <q-card-section class="flex justify-center">
         <div class="text-h4">
           Register
@@ -65,7 +65,7 @@
           </q-input>
 
           <div class="row">
-            Choose an appropriate user type for you:
+            Choose an appropriate user type:
             <div class="q-gutter-md">
               <q-radio name="user_type" v-model="regForm.userType" val="customer" label="Customer" />
               <q-radio name="user_type" v-model="regForm.userType" val="chainStore" label="Chain store" />

@@ -7,6 +7,10 @@ const getters: GetterTree<AuthStateInterface, StateInterface> = {
     return context.user !== null
   },
 
+  getUser (context) {
+    return context.user
+  },
+
   getUserType (context) {
     return context.user?.userType
   }

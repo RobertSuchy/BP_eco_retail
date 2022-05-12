@@ -1,7 +1,7 @@
 import { ActionTree } from 'vuex'
 import { StateInterface } from '../index'
 import { AuthStateInterface } from './state'
-import { authService, authManager } from 'src/services'
+import { authService, authManager, txnService } from 'src/services'
 import { LoginCredentials, RegisterData } from 'src/contracts'
 
 const actions: ActionTree<AuthStateInterface, StateInterface> = {
@@ -9,6 +9,14 @@ const actions: ActionTree<AuthStateInterface, StateInterface> = {
     try {
       commit('AUTH_START')
       const user = await authService.me()
+      if (user) {
+        const data = {
+          wallet: user.wallet
+        }
+        const balance = await txnService.getAccountBalance(JSON.stringify(data))
+        user.algos = balance.algos
+        user.ecoTokens = balance.ecoTokens
+      }
       commit('AUTH_SUCCESS', user)
       return user !== null
     } catch (err) {

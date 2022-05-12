@@ -1,6 +1,6 @@
 <template>
   <q-page class="row items-center justify-evenly">
-    <q-card class="q-ma-lg q-pa-lg" style="width: 450px">
+    <q-card class="q-ma-md q-pa-md" style="width: 450px">
       <q-card-section class="flex justify-center">
         <div class="text-h4">
           Login
@@ -83,7 +83,23 @@ export default defineComponent({
           message: 'Password is required!'
         })
       } else {
-        this.$store.dispatch('auth/login', this.loginForm).then(() => this.$router.push({ name: 'home' }))
+        this.$store.dispatch('auth/login', this.loginForm).then((apiToken) => {
+          console.log(apiToken)
+          if (apiToken) {
+            this.$q.notify({
+              type: 'positive',
+              position: 'bottom',
+              message: 'Login successful!'
+            })
+            this.$router.push({ name: 'user' })
+          }
+        }).catch(() => {
+          this.$q.notify({
+            type: 'negative',
+            position: 'bottom',
+            message: 'Login unsuccessful! Check your login credentials!'
+          })
+        })
       }
     }
   }
