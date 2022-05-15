@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
                 ('last_login', models.DateTimeField(blank=True, null=True, verbose_name='last login')),
                 ('email', models.CharField(max_length=255, unique=True)),
                 ('user_type', models.CharField(choices=[('customer', 'customer'), ('chain_store', 'chain_store'), ('producer', 'producer')], default='customer', max_length=20)),
-                ('wallet', models.CharField(max_length=60)),
+                ('wallet', models.CharField(max_length=60, unique=True)),
                 ('created_at', models.DateTimeField()),
                 ('updated_at', models.DateTimeField()),
             ],

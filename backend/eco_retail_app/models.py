@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
+
 class CustomAccountManager(BaseUserManager):
     def create_user(self, email, user_type, wallet, password, **other_fields):
         if not email:
@@ -21,6 +22,7 @@ class CustomAccountManager(BaseUserManager):
         user.save()
         return user
 
+
 class User(AbstractBaseUser):
     email = models.CharField(max_length=255, unique=True)
 
@@ -35,7 +37,7 @@ class User(AbstractBaseUser):
     )
 
     user_type = models.CharField(max_length=20, choices=USER_TYPES, default=CUSTOMER)
-    wallet = models.CharField(max_length=60)
+    wallet = models.CharField(max_length=60, unique=True)
     created_at = models.DateTimeField()
     updated_at = models.DateTimeField()
 

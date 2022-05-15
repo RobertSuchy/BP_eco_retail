@@ -17,8 +17,9 @@
         <q-route-tab :to="{ name:'home' }" label="Home" />
         <q-route-tab v-if="!isAuthenticated" :to="{ name:'login' }" label="Login" />
         <q-route-tab v-if="!isAuthenticated" :to="{ name:'register' }" label="Register" />
-        <q-route-tab v-if="isAuthenticated" :to="{ name:'user' }" label="My account" />
-        <q-route-tab v-if="isAuthenticated && getUser.userType === 'customer'" :to="{ name:'user' }" label="test" />
+        <q-route-tab v-if="isAuthenticated" :to="{ name:'myAccount' }" label="My account" />
+        <q-route-tab v-if="isAuthenticated && getUser.userType === 'chainStore'" :to="{ name:'chainStore' }" label="Manage tokens" />
+        <q-route-tab v-if="isAuthenticated && getUser.userType === 'chaiproducernStore'" :to="{ name:'producer' }" label="Manage products" />
       </q-tabs>
     </q-header>
 

@@ -1,6 +1,6 @@
 <template>
   <q-page class="row items-center justify-evenly">
-    <q-card class="q-ma-md q-pa-md" style="width: 450px">
+    <q-card class="q-ma-md q-ma-md-lg q-pa-xs q-pa-md-md q-pa-lg-lg" style="width: 450px">
       <q-card-section class="flex justify-center">
         <div class="text-h4">
           Register
@@ -161,10 +161,7 @@ export default defineComponent({
     },
 
     async optInAsset(myAlgoConnect: MyAlgoConnect): Promise<boolean | undefined> {
-      const data = {
-        wallet: this.regForm.wallet
-      }
-      return txnService.optInAssetGetTxn(JSON.stringify(data)).then(async (txn) => {
+      return txnService.optInAssetGetTxn(this.regForm.wallet).then(async (txn) => {
         if (!txn) {
           this.$q.notify({
             type: 'positive',
@@ -196,11 +193,7 @@ export default defineComponent({
     },
 
     async optInContract(myAlgoConnect: MyAlgoConnect): Promise<boolean | undefined> {
-      const data = {
-        wallet: this.regForm.wallet,
-        user_type: this.regForm.userType
-      }
-      return txnService.optInContractGetTxn(JSON.stringify(data)).then(async (txn) => {
+      return txnService.optInContractGetTxn(this.regForm.wallet, this.regForm.userType).then(async (txn) => {
         if (!txn) {
           this.$q.notify({
             type: 'positive',

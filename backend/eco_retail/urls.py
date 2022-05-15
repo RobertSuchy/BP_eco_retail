@@ -16,7 +16,6 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from eco_retail_app import views
-from rest_framework.authtoken import views as authviews
 
 urlpatterns = [
     path('api/admin/', admin.site.urls),
@@ -27,8 +26,9 @@ urlpatterns = [
     path('api/opt-in-contract-get-txn/', views.OptInContractGetTxn.as_view()),
     path('api/opt-in-send-txn/', views.OptInSendTxn.as_view()),
     path('api/auth/register/', views.AuthRegister.as_view()),
-    path('api/auth/login/', authviews.obtain_auth_token),
+    path('api/auth/login/', views.AuthGetToken.as_view()),
     path('api/auth/logout/', views.AuthLogout.as_view()),
     path('api/auth/me/', views.AuthMe.as_view()),
     path('api/get-account-balance/', views.GetAccountBalance.as_view()),
+    path('api/buy-eco-coins-get-txn/', views.BuyEcoCoinsGetTxn.as_view()),
 ]

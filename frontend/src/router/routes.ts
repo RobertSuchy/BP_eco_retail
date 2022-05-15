@@ -21,12 +21,12 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/user',
     name: 'user',
-    meta: { requiresAuth: true, byUserType: true },
+    meta: { requiresAuth: true },
     component: () => import('layouts/MainLayout.vue'),
     children: [
-      { path: 'customer', name: 'customer', component: () => import('pages/CustomerPage.vue') },
-      { path: 'chain-store', name: 'chainStore', component: () => import('pages/HomePage.vue') },
-      { path: 'producer', name: 'producer', component: () => import('pages/HomePage.vue') }
+      { path: 'my-account', name: 'myAccount', component: () => import('src/pages/MyAccountPage.vue') },
+      { path: 'chain-store', name: 'chainStore', meta: { byUserType: true }, component: () => import('pages/ChainStorePage.vue') },
+      { path: 'producer', name: 'producer', meta: { byUserType: true }, component: () => import('pages/HomePage.vue') }
     ]
   },
 

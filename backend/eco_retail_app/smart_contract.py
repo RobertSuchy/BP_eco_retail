@@ -9,34 +9,19 @@ def approval():
     local_user_type = Bytes("user_type") # byteslice
     # local_reward = Bytes("reward") # uint64
     
+    customer = Bytes("customer")
+    chain_store = Bytes("chain_store")
+    producer = Bytes("producer")
     op_send_reward = Bytes("send_reward")
     # op_set_escrow = Bytes("set_escrow")
     op_create_asa = Bytes("create_asa")
-    op_send_asa = Bytes("send_asa")
+    op_exchange_asa = Bytes("exchange_asa")
     # op_c2c = Bytes("c2c")
 
 
     @Subroutine(TealType.none)
     def opt_in(account: Expr):
         return App.localPut(account, local_user_type, Txn.application_args[1])
-
-
-    @Subroutine(TealType.none)
-    def send_reward(account: Expr):
-        return Seq(
-            InnerTxnBuilder.Begin(),
-            InnerTxnBuilder.SetFields(
-                {
-                    TxnField.type_enum: TxnType.Payment,
-                    TxnField.receiver: Txn.application_args[1],
-                    # TxnField.amount: Int(1000),
-                    TxnField.amount: Btoi(Txn.application_args[2]),
-                    TxnField.fee: Int(0)
-                }
-            ),
-            InnerTxnBuilder.Submit(),
-            Approve()
-        )
 
 
     @Subroutine(TealType.none)
@@ -62,7 +47,30 @@ def approval():
 
 
     @Subroutine(TealType.none)
-    def send_asa():
+    def exchange_asa():
+        return Seq(
+            program.check_self(group_size=Int(2), group_index=Int(0)),
+            program.check_rekey_zero(2),
+            Assert(
+                And(
+                    Gtxn[1].type_enum() == TxnType.Payment,
+                    App.localGet(Int(1), local_user_type) == chain_store
+                )
+            ),
+            InnerTxnBuilder.Begin(),
+            InnerTxnBuilder.SetFields({
+                TxnField.type_enum: TxnType.AssetTransfer,
+                TxnField.asset_receiver: Txn.sender(),
+                TxnField.asset_amount: Btoi(Txn.application_args[1]),
+                TxnField.xfer_asset: Int(20)
+            }),
+            InnerTxnBuilder.Submit(),
+            Approve()
+        )
+
+
+    @Subroutine(TealType.none)
+    def send_reward(account: Expr):
         return Seq(
             InnerTxnBuilder.Begin(),
             InnerTxnBuilder.SetFields({
@@ -138,7 +146,7 @@ def approval():
             Cond(
                 [Txn.application_args[0] == op_send_reward, send_reward(Int(0))],
                 [Txn.application_args[0] == op_create_asa, create_asa()],
-                [Txn.application_args[0] == op_send_asa, send_asa()],
+                [Txn.application_args[0] == op_exchange_asa, exchange_asa()],
                 # [Txn.application_args[0] == op_set_escrow, set_escrow()],
                 # [Txn.application_args[0] == op_c2c, c2c()],
             ),

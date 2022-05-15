@@ -1,6 +1,6 @@
 <template>
   <q-page class="row items-center justify-evenly">
-    <q-card class="q-ma-md q-pa-md" style="width: 450px">
+    <q-card class="q-ma-md q-ma-md-lg q-pa-xs q-pa-md-md q-pa-lg-lg" style="width: 450px">
       <q-card-section class="flex justify-center">
         <div class="text-h4">
           Login
@@ -55,6 +55,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
+import MyAlgoConnect from '@randlabs/myalgo-connect'
 
 export default defineComponent({
   name: 'LoginPage',
@@ -65,11 +66,12 @@ export default defineComponent({
         username: '',
         password: ''
       },
+      wallet: '',
       passwordVisible: false
     }
   },
   methods: {
-    submitLoginForm() {
+    async submitLoginForm() {
       if (!this.loginForm.username) {
         this.$q.notify({
           type: 'negative',
@@ -83,15 +85,17 @@ export default defineComponent({
           message: 'Password is required!'
         })
       } else {
-        this.$store.dispatch('auth/login', this.loginForm).then((apiToken) => {
-          console.log(apiToken)
+        const myAlgoConnect = new MyAlgoConnect({ timeout: 30000 })
+        const accountsSharedByUser = await myAlgoConnect.connect()
+        this.wallet = accountsSharedByUser[0].address
+        this.$store.dispatch('auth/login', { credentials: this.loginForm, wallet: this.wallet, myAlgoConnect }).then((apiToken) => {
           if (apiToken) {
             this.$q.notify({
               type: 'positive',
               position: 'bottom',
               message: 'Login successful!'
             })
-            this.$router.push({ name: 'user' })
+            this.$router.push({ name: 'myAccount' })
           }
         }).catch(() => {
           this.$q.notify({

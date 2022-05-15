@@ -25,5 +25,5 @@ export interface User {
     userType: string
     wallet: string
     algos: number
-    ecoTokens: number
+    ecoCoins: number
 }

@@ -1,3 +1,4 @@
+import MyAlgoConnect from '@randlabs/myalgo-connect'
 import { boot } from 'quasar/wrappers'
 import { authManager } from 'src/services'
 import { RouteLocationNormalized, RouteLocationRaw } from 'vue-router'
@@ -26,7 +27,19 @@ export default boot(({ router, store }) => {
 
   // add route guard to check auth user
   router.beforeEach(async (to) => {
-    const isAuthenticated = await store.dispatch('auth/check')
+    let isAuthenticated = false
+    // if (authManager.getToken() && !store.state.auth.myAlgoConnect) {
+    //   const myAlgoConnect = new MyAlgoConnect()
+    //   await myAlgoConnect.connect().then(async (accountsSharedByUser) => {
+    //     store.commit('auth/AUTH_STORE_MY_ALGO_CONNECT', myAlgoConnect)
+    //     isAuthenticated = await store.dispatch('auth/check', accountsSharedByUser[0].address)
+    //   }).catch(async () => {
+    //     isAuthenticated = false
+    //     await store.dispatch('auth/logout')
+    //   })
+    // } else {
+    isAuthenticated = await store.dispatch('auth/check', null)
+    // }
 
     // route requires authentication
     if (to.meta.requiresAuth && !isAuthenticated) {
@@ -43,14 +56,14 @@ export default boot(({ router, store }) => {
       const userType = store.state.auth.user.userType
       if (to.name !== userType) {
         switch (userType) {
-          case 'customer': {
-            return { name: 'customer' }
-          }
           case 'chainStore': {
             return { name: 'chainStore' }
           }
           case 'producer': {
             return { name: 'producer' }
+          }
+          default: {
+            return { name: 'myAccount' }
           }
         }
       }
