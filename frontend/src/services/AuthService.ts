@@ -3,9 +3,9 @@ import type { ApiToken, LoginCredentials, RegisterData, User } from 'src/contrac
 import { api } from 'src/boot/axios'
 
 class AuthService {
-  async me (wallet: string, dontTriggerLogout = false): Promise<User | null> {
-    return api.post(
-      'auth/me/', { wallet }, { dontTriggerLogout } as AxiosRequestConfig
+  async me (dontTriggerLogout = false): Promise<User | null> {
+    return api.get(
+      'auth/me/', { dontTriggerLogout } as AxiosRequestConfig
     )
       .then((response) => response.data)
       .catch((error: AxiosError) => {

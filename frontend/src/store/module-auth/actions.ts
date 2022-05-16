@@ -3,13 +3,12 @@ import { StateInterface } from '../index'
 import { AuthStateInterface } from './state'
 import { authService, authManager, txnService } from 'src/services'
 import { LoginCredentials, RegisterData } from 'src/contracts'
-import MyAlgoConnect from '@randlabs/myalgo-connect'
 
 const actions: ActionTree<AuthStateInterface, StateInterface> = {
-  async check ({ commit }, wallet: string) {
+  async check ({ commit }) {
     try {
       commit('AUTH_START')
-      const user = await authService.me(wallet)
+      const user = await authService.me()
       if (user) {
         const balance = await txnService.getAccountBalance(user.wallet)
         user.algos = balance.algos
@@ -33,11 +32,10 @@ const actions: ActionTree<AuthStateInterface, StateInterface> = {
       throw err
     }
   },
-  async login ({ commit }, { credentials, wallet, myAlgoConnect }: { credentials: LoginCredentials, wallet: string, myAlgoConnect: MyAlgoConnect }) {
+  async login ({ commit }, { credentials, wallet }: { credentials: LoginCredentials, wallet: string }) {
     try {
       commit('AUTH_START')
       const apiToken = await authService.login(credentials, wallet)
-      commit('AUTH_STORE_MY_ALGO_CONNECT', myAlgoConnect)
       commit('AUTH_SUCCESS', null)
       // save api token to local storage and notify listeners
       authManager.setToken(apiToken.token)

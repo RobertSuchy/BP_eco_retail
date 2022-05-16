@@ -172,22 +172,20 @@ export default defineComponent({
         }
 
         const signedTxn = await myAlgoConnect.signTransaction(txn)
-        return txnService.optInSendTxn(Buffer.from(signedTxn.blob).toString('base64')).then((response) => {
-          if (response === 'err') {
-            this.$q.notify({
-              type: 'negative',
-              position: 'bottom',
-              message: 'You need at least 1000 microAlgos to opt-in our EcoRetail token!'
-            })
-            return false
-          }
-
+        return txnService.optInSendTxn(Buffer.from(signedTxn.blob).toString('base64')).then(() => {
           this.$q.notify({
             type: 'positive',
             position: 'bottom',
             message: 'Successfully added our EcoRetail token to your Algorand wallet!'
           })
           return true
+        }).catch(() => {
+          this.$q.notify({
+            type: 'negative',
+            position: 'bottom',
+            message: 'You need at least 1000 microAlgos to opt-in our EcoRetail token!'
+          })
+          return false
         })
       })
     },

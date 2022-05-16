@@ -8,9 +8,10 @@ def approval():
     # global_escrow = Bytes("escrow") # byteslice
     local_user_type = Bytes("user_type") # byteslice
     # local_reward = Bytes("reward") # uint64
+    global_asset_id = Bytes("asset_id")
     
     customer = Bytes("customer")
-    chain_store = Bytes("chain_store")
+    chain_store = Bytes("chainStore")
     producer = Bytes("producer")
     op_send_reward = Bytes("send_reward")
     # op_set_escrow = Bytes("set_escrow")
@@ -21,7 +22,7 @@ def approval():
 
     @Subroutine(TealType.none)
     def opt_in(account: Expr):
-        return App.localPut(account, local_user_type, Txn.application_args[1])
+        return App.localPut(account, local_user_type, Txn.application_args[0])
 
 
     @Subroutine(TealType.none)
@@ -32,8 +33,8 @@ def approval():
             InnerTxnBuilder.SetFields({
                 TxnField.type_enum: TxnType.AssetConfig,
                 TxnField.config_asset_total: Int(1000000),
-                TxnField.config_asset_decimals: Int(2),
-                TxnField.config_asset_unit_name: Bytes("ER"),
+                TxnField.config_asset_decimals: Int(0),
+                TxnField.config_asset_unit_name: Bytes("ERC"),
                 TxnField.config_asset_name: Bytes("EcoRetail Coin"),
                 TxnField.config_asset_manager: Global.current_application_address(),
                 TxnField.config_asset_reserve: Global.current_application_address(),
@@ -41,7 +42,8 @@ def approval():
                 TxnField.config_asset_clawback: Global.current_application_address()
             }),
             InnerTxnBuilder.Submit(),
-            # InnerTxnBuilder.created_asset_id(), 
+            App.globalPut(global_asset_id, InnerTxn.created_asset_id()), 
+            # Log(InnerTxn.created_asset_id()),
             Approve()
         )
 
@@ -54,7 +56,7 @@ def approval():
             Assert(
                 And(
                     Gtxn[1].type_enum() == TxnType.Payment,
-                    App.localGet(Int(1), local_user_type) == chain_store
+                    App.localGet(Int(0), local_user_type) == chain_store
                 )
             ),
             InnerTxnBuilder.Begin(),
@@ -62,7 +64,7 @@ def approval():
                 TxnField.type_enum: TxnType.AssetTransfer,
                 TxnField.asset_receiver: Txn.sender(),
                 TxnField.asset_amount: Btoi(Txn.application_args[1]),
-                TxnField.xfer_asset: Int(20)
+                TxnField.xfer_asset: App.globalGet(global_asset_id)
             }),
             InnerTxnBuilder.Submit(),
             Approve()

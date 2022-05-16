@@ -16,7 +16,7 @@
                     type="number"
                     v-model="amount"
                     label="Amount"
-                    hint="1 EcoRetail Coin = 0.01 ALGOs"
+                    hint="1 EcoRetail Coin = 0.01 Algos"
                     dense
                     filled
                     clearable
@@ -57,31 +57,12 @@
             <q-btn outline rounded color="secondary" size="md" class="full-width q-mb-lg" label="Buy EcoRetail Coins" type="submit" />
           </q-card-actions>
         </q-form>
-
-            <!-- <q-field borderless label="ALGOs:" stack-label>
-                <template v-slot:prepend>
-                <q-icon name="account_balance_wallet" />
-                </template>
-                <template v-slot:control>
-                <div class="self-center full-width no-outline text-subtitle1">{{ getUser.algos }}</div>
-                </template>
-            </q-field>
-
-            <q-field borderless label="EcoRetail Coins:" stack-label>
-                <template v-slot:prepend>
-                <q-icon name="eco" color="green" />
-                </template>
-                <template v-slot:control>
-                <div class="self-center full-width no-outline text-green text-subtitle1">{{ getUser.ecoCoins }}</div>
-                </template>
-            </q-field> -->
       </q-card>
   </q-page>
 </template>
 
 <script lang="ts">
-import MyAlgoConnect from '@randlabs/myalgo-connect'
-import cloneDeep from 'lodash/cloneDeep'
+import MyAlgoConnect, { AlgorandTxn } from '@randlabs/myalgo-connect'
 import { defineComponent } from 'vue'
 import { mapGetters } from 'vuex'
 import { txnService } from '../services'
@@ -104,14 +85,12 @@ export default defineComponent({
   methods: {
     submitExchange() {
       txnService.buyEcoCoinsGetTxn(this.getUser.wallet, this.amount).then(async (txnGroup) => {
-        console.log('----------------')
-        console.log(txnGroup)
-        // const myAlgoConnect = cloneDeep(this.getMyAlgoConnect)
         const myAlgoConnect = new MyAlgoConnect()
-        console.log(myAlgoConnect)
-        const signedTxnGroup = await myAlgoConnect.signTransaction(txnGroup)
-        console.log('----------------')
-        console.log(signedTxnGroup)
+        const signedTxnGroup = await myAlgoConnect.signTransaction(txnGroup as AlgorandTxn[])
+        const signedTxnGroupStringArray = signedTxnGroup.map((signedTxn) => Buffer.from(signedTxn.blob).toString('base64'))
+        await txnService.sendTxn(signedTxnGroupStringArray).then(() => {
+          console.log('done')
+        })
       })
     }
   }

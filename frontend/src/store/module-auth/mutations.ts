@@ -1,4 +1,3 @@
-import MyAlgoConnect from '@randlabs/myalgo-connect'
 import { User } from 'src/contracts'
 import { MutationTree } from 'vuex'
 import { AuthStateInterface } from './state'
@@ -15,9 +14,6 @@ const mutation: MutationTree<AuthStateInterface> = {
   AUTH_ERROR (state, errors) {
     state.status = 'error'
     state.errors = errors
-  },
-  AUTH_STORE_MY_ALGO_CONNECT (state, myAlgoConnect: MyAlgoConnect) {
-    state.myAlgoConnect = myAlgoConnect
   }
 }
 

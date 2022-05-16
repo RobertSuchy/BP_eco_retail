@@ -25,6 +25,11 @@ class TxnService {
     const response = await api.post('buy-eco-coins-get-txn/', { wallet, amount })
     return response.data
   }
+
+  async sendTxn (signedTxn: string | string[]) {
+    const response = await api.post('send-txn/', { signed_txn: signedTxn })
+    return response.data
+  }
 }
 
 export default new TxnService()

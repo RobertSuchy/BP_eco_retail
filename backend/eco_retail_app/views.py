@@ -1,15 +1,14 @@
-from urllib import request
-from django.http import HttpResponse
-from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from django.contrib.auth import get_user_model
+
 from rest_framework.views import APIView
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from django.contrib.auth import get_user_model
 
 from .serializers import UserSerializer
 from .models import *
@@ -17,15 +16,13 @@ import json
 
 from algosdk.v2client.algod import AlgodClient
 from algosdk.future import transaction
-from algosdk.future.transaction import AssetTransferTxn, ApplicationCallTxn, wait_for_confirmation
-from algosdk import account, mnemonic
 from algosdk import encoding
 
 
 ALGOD_ADDRESS = "http://localhost:4001"
 ALGOD_TOKEN = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-ASSET_ID = 4
-APP_ID = 10
+ASSET_ID = 22
+APP_ID = 19
 APP_ACCOUNT = "Y5NP7DMHLJWMKUNZGKGG62TLLZEYE4AUYI7UV3NE7N2DNVK7WHD6RZW5WQ"
 ALGOD_CLIENT = AlgodClient(ALGOD_TOKEN, ALGOD_ADDRESS)
 PARAMS = ALGOD_CLIENT.suggested_params()
@@ -47,7 +44,7 @@ class OptInAssetGetTxn(APIView):
                 break
 
         if not holding:
-            txn = AssetTransferTxn(
+            txn = transaction.AssetTransferTxn(
                 sender=public_key,
                 sp=PARAMS,
                 receiver=public_key,
@@ -79,7 +76,7 @@ class OptInContractGetTxn(APIView):
                 sender=public_key,
                 sp=PARAMS,
                 index=APP_ID,
-                app_args=body['user_type']
+                app_args=[body['user_type']]
             )
             return Response(encoding.msgpack_encode(txn))
 
@@ -97,12 +94,12 @@ class OptInSendTxn(APIView):
         signed_txn = encoding.future_msgpack_decode(body['signed_txn'])
         try:
             txid = ALGOD_CLIENT.send_transaction(signed_txn)
-            confirmed_txn = wait_for_confirmation(ALGOD_CLIENT, txid, 4)
+            confirmed_txn = transaction.wait_for_confirmation(ALGOD_CLIENT, txid, 4)
             print("txID: ", txid)
             print("round: ", confirmed_txn['confirmed-round'])
         except Exception as err:
             print(err)
-            return Response('err')
+            return Response(status=500)
 
         return Response('opted-in')
 
@@ -166,12 +163,9 @@ class AuthMe(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def post(self, request):
-        body = json.loads(request.body)
+    def get(self, request):
         user = request.user
         serializer = UserSerializer(user)
-        if serializer.data and body['wallet'] and serializer.data['wallet'] != body['wallet']:
-            return Response(status=401)
         return Response(serializer.data)
 
 
@@ -206,10 +200,9 @@ class BuyEcoCoinsGetTxn(APIView):
 
     def post(self, request):
         body = json.loads(request.body)
-        print(body)
         public_key = body['wallet']
         amount = body['amount']
-
+        print(amount)
         app_args = [
             b"exchange_asa",
             amount
@@ -221,7 +214,6 @@ class BuyEcoCoinsGetTxn(APIView):
             on_complete=transaction.OnComplete.NoOpOC,
             index=APP_ID,
             app_args=app_args,
-            accounts=[public_key],
             foreign_assets=[ASSET_ID]
         )
 
@@ -244,35 +236,36 @@ class BuyEcoCoinsGetTxn(APIView):
         return Response(txn_group)
 
 
-@csrf_exempt
-def get_tokens(request):
-    # private_key = mnemonic.to_private_key(mnemonic01)
-    # public_key = account.address_from_private_key(private_key)
+# used for sending transactions or transaction groups with authentication
+@method_decorator(csrf_exempt, name='dispatch')
+class SendTxn(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
-    # app_args = [
-    #     b"send_asa",
-    #     1000
-    # ]
+    def post(self, request):
+        body = json.loads(request.body)
+        signed_txn_str = body['signed_txn']
+        is_list = isinstance(signed_txn_str, list)
+        if is_list:
+            signed_txn_group = []
+            for txn in signed_txn_str:
+                signed_txn_group.append(encoding.future_msgpack_decode(txn))
+        else:
+            signed_txn = encoding.future_msgpack_decode(signed_txn_str)
 
-    # txn = ApplicationCallTxn(
-    #     sender=public_key, 
-    #     sp=params, 
-    #     on_complete=transaction.OnComplete.NoOpOC,
-    #     index=APP_ID, 
-    #     app_args=app_args,
-    #     foreign_assets=[20]
-    # )
+        try:
+            if is_list:
+                txid = ALGOD_CLIENT.send_transactions(signed_txn_group)
+            else:
+                txid = ALGOD_CLIENT.send_transaction(signed_txn)
+            confirmed_txn = transaction.wait_for_confirmation(ALGOD_CLIENT, txid, 4)
+            print("txID: ", txid)
+            print("round: ", confirmed_txn['confirmed-round'])
+        except Exception as err:
+            print(err)
+            return Response(status=500)
 
-    # stxn = txn.sign(private_key)
-    # try:
-    #     txid = algod_client.send_transaction(stxn)
-    #     confirmed_txn = wait_for_confirmation(algod_client, txid, 4)
-    #     print("txID:", txid)
-    #     print("round:", confirmed_txn['confirmed-round'])
-    # except Exception as err:
-    #     print(err)
-
-    return HttpResponse(encoding.msgpack_encode(txn))
+        return Response('transaction(s) sent successfully')
 
 
 @csrf_exempt
@@ -286,7 +279,7 @@ def process_products(request):
     # appCallTxn = transaction.ApplicationCallTxn(
     #     sender=
     # )
-    return HttpResponse()
+    return Response()
     
 
 @csrf_exempt
@@ -299,4 +292,4 @@ def add_product(request):
         created_at=now,
         updated_at=now
     )    
-    return HttpResponse()
+    return Response()

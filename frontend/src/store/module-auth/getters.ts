@@ -13,10 +13,6 @@ const getters: GetterTree<AuthStateInterface, StateInterface> = {
 
   getUserType (context) {
     return context.user?.userType
-  },
-
-  getMyAlgoConnect (context) {
-    return context.myAlgoConnect
   }
 }
 

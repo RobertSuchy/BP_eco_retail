@@ -34,21 +34,21 @@ byte "create_asa"
 ==
 bnz main_l13
 txna ApplicationArgs 0
-byte "send_asa"
+byte "exchange_asa"
 ==
 bnz main_l11
 err
 main_l11:
-callsub sendasa_3
+callsub exchangeasa_2
 main_l12:
 int 0
 return
 main_l13:
-callsub createasa_2
+callsub createasa_1
 b main_l12
 main_l14:
 int 0
-callsub sendreward_1
+callsub sendreward_3
 b main_l12
 main_l15:
 int 0
@@ -73,29 +73,12 @@ optin_0:
 store 0
 load 0
 byte "user_type"
-txna ApplicationArgs 1
+txna ApplicationArgs 0
 app_local_put
 retsub
 
-// send_reward
-sendreward_1:
-store 1
-itxn_begin
-int pay
-itxn_field TypeEnum
-txna ApplicationArgs 1
-itxn_field Receiver
-txna ApplicationArgs 2
-btoi
-itxn_field Amount
-int 0
-itxn_field Fee
-itxn_submit
-int 1
-return
-
 // create_asa
-createasa_2:
+createasa_1:
 txn Sender
 global CreatorAddress
 ==
@@ -105,9 +88,9 @@ int acfg
 itxn_field TypeEnum
 int 1000000
 itxn_field ConfigAssetTotal
-int 2
+int 0
 itxn_field ConfigAssetDecimals
-byte "ER"
+byte "ERC"
 itxn_field ConfigAssetUnitName
 byte "EcoRetail Coin"
 itxn_field ConfigAssetName
@@ -120,11 +103,58 @@ itxn_field ConfigAssetFreeze
 global CurrentApplicationAddress
 itxn_field ConfigAssetClawback
 itxn_submit
+byte "asset_id"
+itxn CreatedAssetID
+app_global_put
 int 1
 return
 
-// send_asa
-sendasa_3:
+// exchange_asa
+exchangeasa_2:
+global GroupSize
+int 2
+==
+txn GroupIndex
+int 0
+==
+&&
+assert
+gtxn 0 RekeyTo
+global ZeroAddress
+==
+gtxn 1 RekeyTo
+global ZeroAddress
+==
+&&
+assert
+gtxn 1 TypeEnum
+int pay
+==
+int 0
+byte "user_type"
+app_local_get
+byte "chainStore"
+==
+&&
+assert
+itxn_begin
+int axfer
+itxn_field TypeEnum
+txn Sender
+itxn_field AssetReceiver
+txna ApplicationArgs 1
+btoi
+itxn_field AssetAmount
+byte "asset_id"
+app_global_get
+itxn_field XferAsset
+itxn_submit
+int 1
+return
+
+// send_reward
+sendreward_3:
+store 1
 itxn_begin
 int axfer
 itxn_field TypeEnum
