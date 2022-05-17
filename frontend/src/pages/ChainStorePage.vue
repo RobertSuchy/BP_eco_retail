@@ -68,7 +68,7 @@ import { mapGetters } from 'vuex'
 import { txnService } from '../services'
 
 export default defineComponent({
-  name: 'ChainStore',
+  name: 'ChainStorePage',
   data() {
     return {
       amount: 0
@@ -77,33 +77,39 @@ export default defineComponent({
 
   computed: {
     ...mapGetters('auth', {
-      getUser: 'getUser',
-      getMyAlgoConnect: 'getMyAlgoConnect'
+      getUser: 'getUser'
     })
   },
 
   methods: {
-    submitExchange() {
-      txnService.buyEcoCoinsGetTxn(this.getUser.wallet, this.amount).then(async (txnGroup) => {
+    async submitExchange() {
+      if (this.amount <= 0) {
+        this.$q.notify({
+          type: 'negative',
+          position: 'bottom',
+          message: 'Amount must be greater than 0!'
+        })
+      }
+      txnService.buyEcoCoinsGetTxn(this.amount).then(async (txnGroup) => {
         const myAlgoConnect = new MyAlgoConnect()
         const signedTxnGroup = await myAlgoConnect.signTransaction(txnGroup as AlgorandTxn[])
         const signedTxnGroupStringArray = signedTxnGroup.map((signedTxn) => Buffer.from(signedTxn.blob).toString('base64'))
-        await txnService.sendTxn(signedTxnGroupStringArray).then(() => {
-          console.log('done')
+        txnService.sendTxn(signedTxnGroupStringArray).then((response) => {
+          this.$q.notify({
+            type: 'positive',
+            position: 'bottom',
+            message: response
+          })
+        }).catch(() => {
+          this.$q.notify({
+            type: 'negative',
+            position: 'bottom',
+            message: 'Transaction(s) unsuccessful, insufficient funds or wrong wallet!'
+          })
         })
       })
+      this.$forceUpdate()
     }
   }
 })
 </script>
-
-<style scoped>
-  .wallet-address {
-    font-size: 8px
-  }
-@media (min-width: 576px) {
-  .wallet-address {
-    font-size: 14px
-  }
-}
-</style>

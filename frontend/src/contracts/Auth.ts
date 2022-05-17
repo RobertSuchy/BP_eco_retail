@@ -8,6 +8,7 @@ export interface ApiToken {
 export interface RegisterData {
     email: string
     userType: string
+    name: string
     wallet: string
     password: string
     passwordConfirmation: string
@@ -23,6 +24,7 @@ export interface User {
     id: number
     email: string
     userType: string
+    name:string
     wallet: string
     algos: number
     ecoCoins: number

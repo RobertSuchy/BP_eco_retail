@@ -16,13 +16,18 @@ class TxnService {
     return response.data
   }
 
-  async getAccountBalance (wallet: string) {
-    const response = await api.post('get-account-balance/', { wallet })
+  async getAccountBalance () {
+    const response = await api.get('get-account-balance/')
     return response.data
   }
 
-  async buyEcoCoinsGetTxn (wallet: string, amount: number) {
-    const response = await api.post('buy-eco-coins-get-txn/', { wallet, amount })
+  async buyEcoCoinsGetTxn (amount: number) {
+    const response = await api.post('buy-eco-coins-get-txn/', { amount })
+    return response.data
+  }
+
+  async addProducGetTxn () {
+    const response = await api.get('add-product/')
     return response.data
   }
 

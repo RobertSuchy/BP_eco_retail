@@ -10,7 +10,7 @@ const actions: ActionTree<AuthStateInterface, StateInterface> = {
       commit('AUTH_START')
       const user = await authService.me()
       if (user) {
-        const balance = await txnService.getAccountBalance(user.wallet)
+        const balance = await txnService.getAccountBalance()
         user.algos = balance.algos
         user.ecoCoins = balance.ecoCoins
       }

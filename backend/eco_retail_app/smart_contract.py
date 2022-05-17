@@ -17,6 +17,7 @@ def approval():
     # op_set_escrow = Bytes("set_escrow")
     op_create_asa = Bytes("create_asa")
     op_exchange_asa = Bytes("exchange_asa")
+    op_add_product = Bytes("add_product")
     # op_c2c = Bytes("c2c")
 
 
@@ -43,7 +44,6 @@ def approval():
             }),
             InnerTxnBuilder.Submit(),
             App.globalPut(global_asset_id, InnerTxn.created_asset_id()), 
-            # Log(InnerTxn.created_asset_id()),
             Approve()
         )
 
@@ -56,7 +56,10 @@ def approval():
             Assert(
                 And(
                     Gtxn[1].type_enum() == TxnType.Payment,
-                    App.localGet(Int(0), local_user_type) == chain_store
+                    App.localGet(Int(0), local_user_type) == chain_store,
+                    App.optedIn(Int(0), Int(0)),
+                    Gtxn[1].receiver() == Global.current_application_address(),
+                    Btoi(Txn.application_args[1]) * Int(10_000) == Gtxn[1].amount()
                 )
             ),
             InnerTxnBuilder.Begin(),
@@ -67,6 +70,14 @@ def approval():
                 TxnField.xfer_asset: App.globalGet(global_asset_id)
             }),
             InnerTxnBuilder.Submit(),
+            Approve()
+        )
+
+
+    @Subroutine(TealType.none)
+    def add_product():
+        return Seq(
+            Assert(App.localGet(Int(0), local_user_type) == producer),
             Approve()
         )
 
@@ -84,14 +95,6 @@ def approval():
             InnerTxnBuilder.Submit(),
             Approve()
         )
-
-
-    # @Subroutine(TealType.none)
-    # def init(account: Expr):
-    #     return Seq(
-    #         App.localPut(account, local_customer, Txn.application_args[0]),
-    #         App.localPut(account, local_reward, Btoi(Txn.application_args[1]))
-    #     )
 
 
     # @Subroutine(TealType.none)
@@ -122,20 +125,6 @@ def approval():
     #     ])
 
 
-    # @Subroutine(TealType.none)
-    # def create_asa():
-    #     return Seq([
-    #         Assert(Global.group_size() == Int(2)),
-    #         Assert(Gtxn[1].sender() == App.globalGet(global_escrow)),
-    #         Assert(
-    #             And(
-    #                 Gtxn[1].type_enum() == TxnType.AssetConfig,
-    #                 Eq(Gtxn[1].config_asset_name(), Bytes("EcoRetail Coin")),
-    #             )
-    #         ),
-    #         Approve()
-    #     ])
-
     return program.event(
         init = Approve(),
         delete = Approve(),
@@ -149,6 +138,7 @@ def approval():
                 [Txn.application_args[0] == op_send_reward, send_reward(Int(0))],
                 [Txn.application_args[0] == op_create_asa, create_asa()],
                 [Txn.application_args[0] == op_exchange_asa, exchange_asa()],
+                [Txn.application_args[0] == op_add_product, add_product()],
                 # [Txn.application_args[0] == op_set_escrow, set_escrow()],
                 # [Txn.application_args[0] == op_c2c, c2c()],
             ),

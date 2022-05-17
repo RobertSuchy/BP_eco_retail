@@ -10,7 +10,7 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from .serializers import UserSerializer
+from .serializers import ProductSerializer, UserSerializer
 from .models import *
 import json
 
@@ -23,7 +23,7 @@ ALGOD_ADDRESS = "http://localhost:4001"
 ALGOD_TOKEN = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 ASSET_ID = 22
 APP_ID = 19
-APP_ACCOUNT = "Y5NP7DMHLJWMKUNZGKGG62TLLZEYE4AUYI7UV3NE7N2DNVK7WHD6RZW5WQ"
+APP_ACCOUNT = "IENLVNK7TDN6X3W26JGMRDT2RKKNX7CYVRGJTTUV34O54NXHNQ3C7DA5TA"
 ALGOD_CLIENT = AlgodClient(ALGOD_TOKEN, ALGOD_ADDRESS)
 PARAMS = ALGOD_CLIENT.suggested_params()
 
@@ -49,7 +49,8 @@ class OptInAssetGetTxn(APIView):
                 sp=PARAMS,
                 receiver=public_key,
                 amt=0,
-                index=ASSET_ID
+                index=ASSET_ID,
+                note=str(timezone.now())
             )
             return Response(encoding.msgpack_encode(txn))
 
@@ -76,7 +77,8 @@ class OptInContractGetTxn(APIView):
                 sender=public_key,
                 sp=PARAMS,
                 index=APP_ID,
-                app_args=[body['user_type']]
+                app_args=[body['user_type']],
+                note=str(timezone.now())
             )
             return Response(encoding.msgpack_encode(txn))
 
@@ -117,6 +119,7 @@ class AuthRegister(APIView):
             user = user_model.objects.create_user(
                 email=request_body['email'],
                 user_type=request_body['userType'],
+                name=request_body['name'],
                 wallet=request_body['wallet'],
                 password=request_body['password'],
                 created_at=now,
@@ -174,9 +177,9 @@ class GetAccountBalance(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def post(self, request):
-        body = json.loads(request.body)
-        public_key = body['wallet']
+    def get(self, request):
+        serializer = UserSerializer(request.user)
+        public_key = serializer.data['wallet']        
         account_info = ALGOD_CLIENT.account_info(public_key)
         algos = account_info['amount'] / 1_000_000
         ecoCoins = 0
@@ -200,12 +203,12 @@ class BuyEcoCoinsGetTxn(APIView):
 
     def post(self, request):
         body = json.loads(request.body)
-        public_key = body['wallet']
+        serializer = UserSerializer(request.user)
+        public_key = serializer.data['wallet']
         amount = body['amount']
-        print(amount)
         app_args = [
             b"exchange_asa",
-            amount
+            int(amount)
         ]
 
         txn1 = transaction.ApplicationCallTxn(
@@ -214,7 +217,8 @@ class BuyEcoCoinsGetTxn(APIView):
             on_complete=transaction.OnComplete.NoOpOC,
             index=APP_ID,
             app_args=app_args,
-            foreign_assets=[ASSET_ID]
+            foreign_assets=[ASSET_ID],
+            note=str(timezone.now())
         )
 
         txn2 = transaction.PaymentTxn(
@@ -222,7 +226,8 @@ class BuyEcoCoinsGetTxn(APIView):
             sp=PARAMS,
             receiver=APP_ACCOUNT,
             # EcoRetail Coins -> Algos -> microAlgos
-            amt=int(int(amount) / 100 * 1_000_000)
+            amt=int(int(amount) / 100 * 1_000_000),
+            note=str(timezone.now())
         )
 
         group_id = transaction.calculate_group_id([txn1, txn2])
@@ -265,7 +270,58 @@ class SendTxn(APIView):
             print(err)
             return Response(status=500)
 
-        return Response('transaction(s) sent successfully')
+        return Response('Transaction(s) sent successfully!')
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class AddProduct(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        serializer = UserSerializer(request.user)
+        public_key = serializer.data['wallet']
+
+        app_args = [
+            b"add_product"
+        ]
+
+        txn = transaction.ApplicationCallTxn(
+            sender=public_key,
+            sp=PARAMS,
+            on_complete=transaction.OnComplete.NoOpOC,
+            index=APP_ID,
+            app_args=app_args,
+            note=str(timezone.now())
+        )
+
+        return Response(encoding.msgpack_encode(txn))
+
+    def post(self, request):
+        request_body = json.loads(request.body)
+        now = timezone.now()
+        try:
+            product, created = Product.objects.update_or_create(
+                name=request_body['name'],
+                producer=request.user,
+                defaults={
+                'name': request_body['name'],
+                'producer': request.user,
+                'description': request_body['description'],
+                'rating': request_body['rating'],
+                'created_at': now,
+                'updated_at': now
+                }
+            )
+
+            serializer = ProductSerializer(product)
+            print(serializer.data)
+
+            return Response(created)
+        
+        except Exception as err:
+            print(err)
+            return Response(status=500)        
 
 
 @csrf_exempt
@@ -281,15 +337,3 @@ def process_products(request):
     # )
     return Response()
     
-
-@csrf_exempt
-def add_product(request):
-    request_body = json.loads(request.body)
-    now = timezone.now()
-    Product.objects.create(
-        name=request_body['name'],
-        rating=request_body['rating'],
-        created_at=now,
-        updated_at=now
-    )    
-    return Response()

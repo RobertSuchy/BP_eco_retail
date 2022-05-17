@@ -1,9 +1,10 @@
+from enum import unique
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
 
 class CustomAccountManager(BaseUserManager):
-    def create_user(self, email, user_type, wallet, password, **other_fields):
+    def create_user(self, email, user_type, name, wallet, password, **other_fields):
         if not email:
             raise ValueError('Email is required')
 
@@ -17,7 +18,7 @@ class CustomAccountManager(BaseUserManager):
             raise ValueError('Password is required')                    
 
         email = self.normalize_email(email)
-        user = self.model(email=email, user_type=user_type, wallet=wallet, **other_fields)
+        user = self.model(email=email, user_type=user_type, name=name, wallet=wallet, **other_fields)
         user.set_password(password)
         user.save()
         return user
@@ -37,6 +38,7 @@ class User(AbstractBaseUser):
     )
 
     user_type = models.CharField(max_length=20, choices=USER_TYPES, default=CUSTOMER)
+    name = models.CharField(max_length=255)
     wallet = models.CharField(max_length=60, unique=True)
     created_at = models.DateTimeField()
     updated_at = models.DateTimeField()
@@ -55,9 +57,31 @@ class User(AbstractBaseUser):
 
 class Product(models.Model):
     name = models.CharField(max_length=255)
-    rating = models.FloatField()
+    producer = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    description = models.CharField(max_length=255)
+
+    A = 'A'
+    B = 'B'
+    C = 'C'
+    D = 'D'
+    E = 'E'
+    F = 'F'
+
+    ECO_RATING_CATEGORIES = (
+        (A, A),
+        (B, B),
+        (C, C),
+        (D, D),
+        (E, E),
+        (F, F)
+    )
+
+    rating = models.CharField(max_length=1, choices=ECO_RATING_CATEGORIES, default=C)
     created_at = models.DateTimeField()
     updated_at = models.DateTimeField()
 
     class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['name', 'producer'], name='unique_product')
+        ]
         db_table = 'products'

@@ -8,6 +8,15 @@
       </q-card-section>
       <q-form class="q-gutter-md" @submit.prevent="submitRegForm">
         <q-card-section class="q-gutter-y-lg">
+          <div class="row">
+            Choose an appropriate user type:
+            <div class="q-gutter-md">
+              <q-radio name="user_type" v-model="regForm.userType" val="customer" label="Customer" />
+              <q-radio name="user_type" v-model="regForm.userType" val="chainStore" label="Chain store" />
+              <q-radio name="user_type" v-model="regForm.userType" val="producer" label="Producer" />
+            </div>
+          </div>
+
           <q-input
                   name="email"
                   type="email"
@@ -19,6 +28,20 @@
                   autofocus>
             <template v-slot:prepend>
               <q-icon name="email" />
+            </template>
+          </q-input>
+
+          <q-input v-if="regForm.userType == 'chainStore' || regForm.userType == 'producer'"
+                  name="name"
+                  type="text"
+                  v-model="regForm.name"
+                  label="Name"
+                  dense
+                  filled
+                  clearable
+                  autofocus>
+            <template v-slot:prepend>
+              <q-icon name="label" />
             </template>
           </q-input>
 
@@ -64,14 +87,6 @@
             </template>
           </q-input>
 
-          <div class="row">
-            Choose an appropriate user type:
-            <div class="q-gutter-md">
-              <q-radio name="user_type" v-model="regForm.userType" val="customer" label="Customer" />
-              <q-radio name="user_type" v-model="regForm.userType" val="chainStore" label="Chain store" />
-              <q-radio name="user_type" v-model="regForm.userType" val="producer" label="Producer" />
-            </div>
-          </div>
         </q-card-section>
 
         <q-card-actions class="flex justify-center q-gutter-md q-mt-xs">
@@ -96,6 +111,7 @@ export default defineComponent({
       regForm: {
         email: '',
         userType: '',
+        name: '',
         wallet: '',
         password: '',
         passwordConfirmation: ''
@@ -172,7 +188,8 @@ export default defineComponent({
         }
 
         const signedTxn = await myAlgoConnect.signTransaction(txn)
-        return txnService.optInSendTxn(Buffer.from(signedTxn.blob).toString('base64')).then(() => {
+        const signedTxnString = Buffer.from(signedTxn.blob).toString('base64')
+        return txnService.optInSendTxn(signedTxnString).then(() => {
           this.$q.notify({
             type: 'positive',
             position: 'bottom',
@@ -202,22 +219,21 @@ export default defineComponent({
         }
 
         const signedTxn = await myAlgoConnect.signTransaction(txn)
-        return txnService.optInSendTxn(Buffer.from(signedTxn.blob).toString('base64')).then((response) => {
-          if (response === 'err') {
-            this.$q.notify({
-              type: 'negative',
-              position: 'bottom',
-              message: 'You need at least 1000 microAlgos to opt-in our smart contract!'
-            })
-            return false
-          }
-
+        const signedTxnString = Buffer.from(signedTxn.blob).toString('base64')
+        return txnService.optInSendTxn(signedTxnString).then(() => {
           this.$q.notify({
             type: 'positive',
             position: 'bottom',
             message: 'Successfully opted-in our smart contract, now you are ready to register and use our application!'
           })
           return true
+        }).catch(() => {
+          this.$q.notify({
+            type: 'negative',
+            position: 'bottom',
+            message: 'You need at least 1000 microAlgos to opt-in our EcoRetail token!'
+          })
+          return false
         })
       })
     }

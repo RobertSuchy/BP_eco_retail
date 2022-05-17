@@ -2,23 +2,23 @@
 txn ApplicationID
 int 0
 ==
-bnz main_l19
+bnz main_l21
 txn OnCompletion
 int DeleteApplication
 ==
-bnz main_l18
+bnz main_l20
 txn OnCompletion
 int UpdateApplication
 ==
-bnz main_l17
+bnz main_l19
 txn OnCompletion
 int OptIn
 ==
-bnz main_l16
+bnz main_l18
 txn OnCompletion
 int CloseOut
 ==
-bnz main_l15
+bnz main_l17
 txn OnCompletion
 int NoOp
 ==
@@ -28,43 +28,50 @@ main_l7:
 txna ApplicationArgs 0
 byte "send_reward"
 ==
-bnz main_l14
+bnz main_l16
 txna ApplicationArgs 0
 byte "create_asa"
 ==
-bnz main_l13
+bnz main_l15
 txna ApplicationArgs 0
 byte "exchange_asa"
 ==
-bnz main_l11
+bnz main_l14
+txna ApplicationArgs 0
+byte "add_product"
+==
+bnz main_l12
 err
-main_l11:
-callsub exchangeasa_2
 main_l12:
-int 0
-return
+callsub addproduct_3
 main_l13:
-callsub createasa_1
-b main_l12
-main_l14:
-int 0
-callsub sendreward_3
-b main_l12
-main_l15:
 int 0
 return
+main_l14:
+callsub exchangeasa_2
+b main_l13
+main_l15:
+callsub createasa_1
+b main_l13
 main_l16:
+int 0
+callsub sendreward_4
+b main_l13
+main_l17:
+int 0
+return
+main_l18:
 int 0
 callsub optin_0
 int 1
 return
-main_l17:
-int 1
-return
-main_l18:
-int 1
-return
 main_l19:
+int 1
+return
+main_l20:
+int 1
+return
+main_l21:
 int 1
 return
 
@@ -136,6 +143,21 @@ app_local_get
 byte "chainStore"
 ==
 &&
+int 0
+int 0
+app_opted_in
+&&
+gtxn 1 Receiver
+global CurrentApplicationAddress
+==
+&&
+txna ApplicationArgs 1
+btoi
+int 10000
+*
+gtxn 1 Amount
+==
+&&
 assert
 itxn_begin
 int axfer
@@ -152,8 +174,19 @@ itxn_submit
 int 1
 return
 
+// add_product
+addproduct_3:
+int 0
+byte "user_type"
+app_local_get
+byte "producer"
+==
+assert
+int 1
+return
+
 // send_reward
-sendreward_3:
+sendreward_4:
 store 1
 itxn_begin
 int axfer
