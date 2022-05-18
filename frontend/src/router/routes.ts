@@ -25,6 +25,7 @@ const routes: RouteRecordRaw[] = [
     component: () => import('layouts/MainLayout.vue'),
     children: [
       { path: 'my-account', name: 'myAccount', component: () => import('src/pages/MyAccountPage.vue') },
+      { path: 'all-products', name: 'allProducts', component: () => import('src/pages/ProductsPage.vue') },
       { path: 'chain-store', name: 'chainStore', meta: { byUserType: true }, component: () => import('pages/ChainStorePage.vue') },
       { path: 'producer', name: 'producer', meta: { byUserType: true }, component: () => import('pages/ProducerPage.vue') }
     ]

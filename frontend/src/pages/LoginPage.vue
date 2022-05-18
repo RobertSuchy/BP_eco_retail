@@ -29,7 +29,8 @@
                   label="Password"
                   dense
                   filled
-                  clearable>
+                  clearable
+                  autocomplete>
             <template v-slot:prepend>
               <q-icon name="lock" />
             </template>

@@ -35,6 +35,7 @@ urlpatterns = [
     # 
     path('api/buy-eco-coins-get-txn/', views.BuyEcoCoinsGetTxn.as_view()),
     path('api/add-product/', views.AddProduct.as_view()),
+    path('api/get-all-products/', views.GetAllProducts.as_view()),
     path('api/send-txn/', views.SendTxn.as_view()),
     path('api/process-products/', views.process_products),
 ]

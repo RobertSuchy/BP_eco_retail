@@ -38,8 +38,7 @@
                   label="Name"
                   dense
                   filled
-                  clearable
-                  autofocus>
+                  clearable>
             <template v-slot:prepend>
               <q-icon name="label" />
             </template>

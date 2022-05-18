@@ -5,7 +5,7 @@ import { authService, authManager, txnService } from 'src/services'
 import { LoginCredentials, RegisterData } from 'src/contracts'
 
 const actions: ActionTree<AuthStateInterface, StateInterface> = {
-  async check ({ commit }) {
+  async check ({ commit, dispatch }) {
     try {
       commit('AUTH_START')
       const user = await authService.me()
@@ -13,6 +13,7 @@ const actions: ActionTree<AuthStateInterface, StateInterface> = {
         const balance = await txnService.getAccountBalance()
         user.algos = balance.algos
         user.ecoCoins = balance.ecoCoins
+        await dispatch('products/getAllProducts', '', { root: true })
       }
       commit('AUTH_SUCCESS', user)
       return user !== null

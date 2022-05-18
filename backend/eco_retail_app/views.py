@@ -313,15 +313,27 @@ class AddProduct(APIView):
                 'updated_at': now
                 }
             )
-
-            serializer = ProductSerializer(product)
-            print(serializer.data)
+            
 
             return Response(created)
         
         except Exception as err:
             print(err)
             return Response(status=500)        
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class GetAllProducts(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        products = Product.objects.all()
+        serializedProducts = []
+        for product in products:
+            serializedProducts.append(ProductSerializer(product).data)
+
+        return Response(serializedProducts)
 
 
 @csrf_exempt

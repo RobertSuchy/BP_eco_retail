@@ -28,6 +28,15 @@
               </template>
           </q-field>
 
+          <q-field v-if="getUser.userType == 'chainStore' || getUser.userType == 'producer'" borderless label="Name:" stack-label>
+              <template v-slot:prepend>
+              <q-icon name="label" />
+              </template>
+              <template v-slot:control>
+              <div class="self-center full-width no-outline text-subtitle1">{{ getUser.name }}</div>
+              </template>
+          </q-field>
+
           <q-field borderless label="Wallet address:" stack-label>
               <template v-slot:prepend>
               <q-icon name="wallet" />

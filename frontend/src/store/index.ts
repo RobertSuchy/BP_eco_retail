@@ -6,7 +6,9 @@ import {
   useStore as vuexUseStore
 } from 'vuex'
 import auth from './module-auth'
+import products from './module-products'
 import type { AuthStateInterface } from './module-auth/state'
+import { ProductsStateInterface } from './module-products/state'
 
 // import example from './module-example'
 // import { ExampleStateInterface } from './module-example/state';
@@ -24,7 +26,8 @@ export interface StateInterface {
   // Define your own store structure, using submodules if needed
   // example: ExampleStateInterface;
   // Declared as unknown to avoid linting issue. Best to strongly type as per the line above.
-  auth: AuthStateInterface
+  auth: AuthStateInterface,
+  products: ProductsStateInterface
 }
 
 // provide typings for `this.$store`
@@ -40,7 +43,8 @@ export const storeKey: InjectionKey<VuexStore<StateInterface>> = Symbol('vuex-ke
 export default store(function (/* { ssrContext } */) {
   const Store = createStore<StateInterface>({
     modules: {
-      auth
+      auth,
+      products
     },
 
     // enable strict mode (adds overhead!)
