@@ -29,3 +29,12 @@ export interface User {
     algos: number
     ecoCoins: number
 }
+
+export interface RewardsPolicy {
+    categoryA: number
+    categoryB: number
+    categoryC: number
+    categoryD: number
+    categoryE: number
+    categoryF: number
+}

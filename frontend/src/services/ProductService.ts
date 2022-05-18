@@ -1,5 +1,5 @@
 import { api } from 'src/boot/axios'
-import { ProductForm } from 'src/contracts'
+import { ProductForm, RewardsPolicy } from 'src/contracts'
 
 class ProductService {
   async addProduct (productForm: ProductForm) {
@@ -9,6 +9,11 @@ class ProductService {
 
   async getAllProducts () {
     const response = await api.get('get-all-products/')
+    return response.data
+  }
+
+  async updateRewardsPolicy (rewardsPolicy: RewardsPolicy) {
+    const response = await api.post('update-rewards-policy/', rewardsPolicy)
     return response.data
   }
 }

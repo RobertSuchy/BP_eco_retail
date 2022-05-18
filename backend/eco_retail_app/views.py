@@ -1,3 +1,4 @@
+from unicodedata import category
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
@@ -10,7 +11,7 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from .serializers import ProductSerializer, UserSerializer
+from .serializers import ProductSerializer, RewardsPolicySerializer, UserSerializer
 from .models import *
 import json
 
@@ -125,6 +126,20 @@ class AuthRegister(APIView):
                 created_at=now,
                 updated_at=now
             )    
+
+            if request_body['userType'] == 'chainStore':
+                RewardsPolicy.objects.create(
+                    chain_store=user,
+                    category_a=2,
+                    category_b=1.5,
+                    category_c=1,
+                    category_d=0.5,
+                    category_e=0.25,
+                    category_f=0,
+                    created_at=now,
+                    updated_at=now
+                )
+
             serializer = UserSerializer(user)
             return Response(serializer.data)
         
@@ -168,8 +183,39 @@ class AuthMe(APIView):
 
     def get(self, request):
         user = request.user
-        serializer = UserSerializer(user)
-        return Response(serializer.data)
+        user_serializer = UserSerializer(user)
+        if user_serializer.data['user_type'] == 'chainStore':
+            rewards_policy = RewardsPolicy.objects.get(chain_store=user)
+            rewards_policy_serializer = RewardsPolicySerializer(rewards_policy)
+            return Response([user_serializer.data, rewards_policy_serializer.data])
+
+        return Response(user_serializer.data)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class UpdateRewardsPolicy(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        request_body = json.loads(request.body)
+        try:
+            rewardsPolicy = RewardsPolicy.objects.get(chain_store=request.user)
+            now = timezone.now()
+            rewardsPolicy.category_a = request_body['categoryA']
+            rewardsPolicy.category_b = request_body['categoryB']
+            rewardsPolicy.category_c = request_body['categoryC']
+            rewardsPolicy.category_d = request_body['categoryD']
+            rewardsPolicy.category_e = request_body['categoryE']
+            rewardsPolicy.category_f = request_body['categoryF']
+            rewardsPolicy.updated_at = now
+            rewardsPolicy.save()
+
+            return Response()
+
+        except Exception as err:
+            print(err)
+            return Response(status=500)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -313,8 +359,6 @@ class AddProduct(APIView):
                 'updated_at': now
                 }
             )
-            
-
             return Response(created)
         
         except Exception as err:
@@ -336,16 +380,20 @@ class GetAllProducts(APIView):
         return Response(serializedProducts)
 
 
-@csrf_exempt
-def process_products(request):
-    input_body = json.loads(request.body)
-    print(input_body['customer_wallet'])
-    reward = 0
-    for item in input_body['products']:
-        reward += Product.objects.get(id=item['id']).rating * item['price'] * item['amount'] * 1000
-    print(reward)
-    # appCallTxn = transaction.ApplicationCallTxn(
-    #     sender=
-    # )
-    return Response()
+@method_decorator(csrf_exempt, name='dispatch')
+class ProcessProducts(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(request):
+        input_body = json.loads(request.body)
+        print(input_body['customer_wallet'])
+        reward = 0
+        for item in input_body['products']:
+            reward += Product.objects.get(id=item['id']).rating * item['price'] * item['amount'] * 1000
+        print(reward)
+        # appCallTxn = transaction.ApplicationCallTxn(
+        #     sender=
+        # )
+        return Response()
     

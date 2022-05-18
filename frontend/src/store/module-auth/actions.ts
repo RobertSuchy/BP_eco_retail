@@ -8,15 +8,25 @@ const actions: ActionTree<AuthStateInterface, StateInterface> = {
   async check ({ commit, dispatch }) {
     try {
       commit('AUTH_START')
-      const user = await authService.me()
-      if (user) {
-        const balance = await txnService.getAccountBalance()
-        user.algos = balance.algos
-        user.ecoCoins = balance.ecoCoins
+      const response = await authService.me()
+      if (response) {
         await dispatch('products/getAllProducts', '', { root: true })
+        const balance = await txnService.getAccountBalance()
+
+        if (Array.isArray(response)) {
+          const user = response[0]
+          const rewardsPolicy = response[1]
+          user.algos = balance.algos
+          user.ecoCoins = balance.ecoCoins
+          commit('AUTH_SUCCESS', { user, rewardsPolicy })
+        } else {
+          const user = response
+          user.algos = balance.algos
+          user.ecoCoins = balance.ecoCoins
+          commit('AUTH_SUCCESS', { user, rewardsPolicy: null })
+        }
       }
-      commit('AUTH_SUCCESS', user)
-      return user !== null
+      return response !== null
     } catch (err) {
       commit('AUTH_ERROR', err)
       throw err
@@ -26,7 +36,7 @@ const actions: ActionTree<AuthStateInterface, StateInterface> = {
     try {
       commit('AUTH_START')
       const user = await authService.register(form)
-      commit('AUTH_SUCCESS', null)
+      commit('AUTH_SUCCESS', { user: null, rewardsPolicy: null })
       return user
     } catch (err) {
       commit('AUTH_ERROR', err)
@@ -37,7 +47,7 @@ const actions: ActionTree<AuthStateInterface, StateInterface> = {
     try {
       commit('AUTH_START')
       const apiToken = await authService.login(credentials, wallet)
-      commit('AUTH_SUCCESS', null)
+      commit('AUTH_SUCCESS', { user: null, rewardsPolicy: null })
       // save api token to local storage and notify listeners
       authManager.setToken(apiToken.token)
       return apiToken
@@ -50,7 +60,7 @@ const actions: ActionTree<AuthStateInterface, StateInterface> = {
     try {
       commit('AUTH_START')
       await authService.logout()
-      commit('AUTH_SUCCESS', null)
+      commit('AUTH_SUCCESS', { user: null, rewardsPolicy: null })
       // remove api token and notify listeners
       authManager.removeToken()
     } catch (err) {

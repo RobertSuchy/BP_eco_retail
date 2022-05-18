@@ -1,4 +1,4 @@
-import { User } from 'src/contracts'
+import { RewardsPolicy, User } from 'src/contracts'
 import { MutationTree } from 'vuex'
 import { AuthStateInterface } from './state'
 
@@ -7,9 +7,10 @@ const mutation: MutationTree<AuthStateInterface> = {
     state.status = 'pending'
     state.errors = []
   },
-  AUTH_SUCCESS (state, user: User | null) {
+  AUTH_SUCCESS (state, { user, rewardsPolicy }: { user: User | null, rewardsPolicy: RewardsPolicy | null }) {
     state.status = 'success'
     state.user = user
+    state.rewardsPolicy = rewardsPolicy
   },
   AUTH_ERROR (state, errors) {
     state.status = 'error'

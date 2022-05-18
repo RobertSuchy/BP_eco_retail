@@ -85,3 +85,18 @@ class Product(models.Model):
             models.UniqueConstraint(fields=['name', 'producer'], name='unique_product')
         ]
         db_table = 'products'
+
+
+class RewardsPolicy(models.Model):
+    chain_store = models.OneToOneField(User, on_delete=models.DO_NOTHING)
+    category_a = models.FloatField()
+    category_b = models.FloatField()
+    category_c = models.FloatField()
+    category_d = models.FloatField()
+    category_e = models.FloatField()
+    category_f = models.FloatField()
+    created_at = models.DateTimeField()
+    updated_at = models.DateTimeField()
+
+    class Meta:
+        db_table = 'rewards_policies'
