@@ -7,6 +7,10 @@ const getters: GetterTree<ProductsStateInterface, StateInterface> = {
     return context.products
   },
 
+  getCustomers (context) {
+    return context.customers
+  },
+
   getProducersProducts: (context) => (producerName: string) => {
     return context.products.filter(product => product.producerName === producerName)
   }

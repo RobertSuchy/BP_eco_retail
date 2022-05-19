@@ -31,6 +31,11 @@ class TxnService {
     return response.data
   }
 
+  async getAlgoPrice () {
+    const response = await api.get('https://api.coinbase.com/v2/prices/ALGO-EUR/buy')
+    return response.data.data.amount
+  }
+
   async sendTxn (signedTxn: string | string[]) {
     const response = await api.post('send-txn/', { signed_txn: signedTxn })
     return response.data

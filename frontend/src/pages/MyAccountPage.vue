@@ -128,7 +128,6 @@
 </template>
 
 <script lang="ts">
-import { RewardsPolicy } from '../contracts'
 import { defineComponent } from 'vue'
 import { mapGetters } from 'vuex'
 import { productService } from '../services'

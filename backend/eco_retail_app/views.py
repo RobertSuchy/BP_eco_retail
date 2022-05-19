@@ -113,21 +113,21 @@ class AuthRegister(APIView):
     permission_classes = []
 
     def post(self, request):
-        request_body = json.loads(request.body)
+        body = json.loads(request.body)
         now = timezone.now()
         user_model = get_user_model()
         try:
             user = user_model.objects.create_user(
-                email=request_body['email'],
-                user_type=request_body['userType'],
-                name=request_body['name'],
-                wallet=request_body['wallet'],
-                password=request_body['password'],
+                email=body['email'],
+                user_type=body['userType'],
+                name=body['name'],
+                wallet=body['wallet'],
+                password=body['password'],
                 created_at=now,
                 updated_at=now
             )    
 
-            if request_body['userType'] == 'chainStore':
+            if body['userType'] == 'chainStore':
                 RewardsPolicy.objects.create(
                     chain_store=user,
                     category_a=2,
@@ -198,16 +198,16 @@ class UpdateRewardsPolicy(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        request_body = json.loads(request.body)
+        body = json.loads(request.body)
         try:
             rewardsPolicy = RewardsPolicy.objects.get(chain_store=request.user)
             now = timezone.now()
-            rewardsPolicy.category_a = request_body['categoryA']
-            rewardsPolicy.category_b = request_body['categoryB']
-            rewardsPolicy.category_c = request_body['categoryC']
-            rewardsPolicy.category_d = request_body['categoryD']
-            rewardsPolicy.category_e = request_body['categoryE']
-            rewardsPolicy.category_f = request_body['categoryF']
+            rewardsPolicy.category_a = body['categoryA']
+            rewardsPolicy.category_b = body['categoryB']
+            rewardsPolicy.category_c = body['categoryC']
+            rewardsPolicy.category_d = body['categoryD']
+            rewardsPolicy.category_e = body['categoryE']
+            rewardsPolicy.category_f = body['categoryF']
             rewardsPolicy.updated_at = now
             rewardsPolicy.save()
 
@@ -240,6 +240,20 @@ class GetAccountBalance(APIView):
         }
 
         return Response(response)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class GetCustomers(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        customers = User.objects.filter(user_type='customer')
+        customers_wallets = []
+        for customer in customers:
+            customers_wallets.append(customer.wallet)
+
+        return Response(customers_wallets)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -344,17 +358,17 @@ class AddProduct(APIView):
         return Response(encoding.msgpack_encode(txn))
 
     def post(self, request):
-        request_body = json.loads(request.body)
+        body = json.loads(request.body)
         now = timezone.now()
         try:
             product, created = Product.objects.update_or_create(
-                name=request_body['name'],
+                name=body['name'],
                 producer=request.user,
                 defaults={
-                'name': request_body['name'],
+                'name': body['name'],
                 'producer': request.user,
-                'description': request_body['description'],
-                'rating': request_body['rating'],
+                'description': body['description'],
+                'rating': body['rating'],
                 'created_at': now,
                 'updated_at': now
                 }
@@ -381,19 +395,73 @@ class GetAllProducts(APIView):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class ProcessProducts(APIView):
+class ProcessPurchase(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def post(request):
-        input_body = json.loads(request.body)
-        print(input_body['customer_wallet'])
-        reward = 0
-        for item in input_body['products']:
-            reward += Product.objects.get(id=item['id']).rating * item['price'] * item['amount'] * 1000
-        print(reward)
-        # appCallTxn = transaction.ApplicationCallTxn(
-        #     sender=
-        # )
-        return Response()
+    def post(self, request):
+        body = json.loads(request.body)
+        customer_wallet = body['wallet']
+
+        purchase_list = body['purchase_list']
+        algo_price = float(body['algo_price'])
+        chain_store_wallet = request.user.wallet
+
+        try:
+            rewards_policy = RewardsPolicy.objects.get(chain_store=request.user)
+
+            rating_mapping = {
+                'A': rewards_policy.category_a,
+                'B': rewards_policy.category_b,
+                'C': rewards_policy.category_c,
+                'D': rewards_policy.category_d,
+                'E': rewards_policy.category_e,
+                'F': rewards_policy.category_f
+            }
+
+            reward = 0
+            for item in purchase_list:
+                product = Product.objects.get(id=item['id'])
+                rating = rating_mapping.get(product.rating) / 100
+                reward += rating * item['price'] * item['amount'] 
+
+            reward = int(round(reward / algo_price * 100))
+
+            app_args = [
+                b"send_reward",
+                reward
+            ]
+
+            txn1 = transaction.ApplicationCallTxn(
+                sender=chain_store_wallet,
+                sp=PARAMS,
+                on_complete=transaction.OnComplete.NoOpOC,
+                index=APP_ID,
+                app_args=app_args,
+                accounts=[customer_wallet],
+                note=str(timezone.now())
+            )
+
+            txn2 = transaction.AssetTransferTxn(
+                sender=chain_store_wallet,
+                sp=PARAMS,
+                receiver=customer_wallet,
+                amt=reward,
+                index=ASSET_ID,
+                note=str(timezone.now())
+            )
+
+            group_id = transaction.calculate_group_id([txn1, txn2])
+            txn1.group = group_id
+            txn2.group = group_id
+            txn_group = [
+                encoding.msgpack_encode(txn1),
+                encoding.msgpack_encode(txn2)
+            ]
+
+            return Response([reward, txn_group])
+
+        except Exception as err:
+            print(err)
+            return Response(status=500)   
     

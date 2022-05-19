@@ -26,36 +26,35 @@ bnz main_l7
 err
 main_l7:
 txna ApplicationArgs 0
-byte "send_reward"
+byte "create_asa"
 ==
 bnz main_l16
 txna ApplicationArgs 0
-byte "create_asa"
+byte "exchange_asa"
 ==
 bnz main_l15
 txna ApplicationArgs 0
-byte "exchange_asa"
+byte "add_product"
 ==
 bnz main_l14
 txna ApplicationArgs 0
-byte "add_product"
+byte "send_reward"
 ==
 bnz main_l12
 err
 main_l12:
-callsub addproduct_3
+callsub sendreward_4
 main_l13:
 int 0
 return
 main_l14:
-callsub exchangeasa_2
+callsub addproduct_3
 b main_l13
 main_l15:
-callsub createasa_1
+callsub exchangeasa_2
 b main_l13
 main_l16:
-int 0
-callsub sendreward_4
+callsub createasa_1
 b main_l13
 main_l17:
 int 0
@@ -138,17 +137,21 @@ gtxn 1 TypeEnum
 int pay
 ==
 int 0
+int 0
+app_opted_in
+&&
+int 0
 byte "user_type"
 app_local_get
 byte "chainStore"
 ==
 &&
-int 0
-int 0
-app_opted_in
-&&
 gtxn 1 Receiver
 global CurrentApplicationAddress
+==
+&&
+txn NumAppArgs
+int 2
 ==
 &&
 txna ApplicationArgs 1
@@ -187,17 +190,63 @@ return
 
 // send_reward
 sendreward_4:
-store 1
-itxn_begin
+global GroupSize
+int 2
+==
+txn GroupIndex
+int 0
+==
+&&
+assert
+gtxn 0 RekeyTo
+global ZeroAddress
+==
+gtxn 1 RekeyTo
+global ZeroAddress
+==
+&&
+assert
+gtxn 1 TypeEnum
 int axfer
-itxn_field TypeEnum
+==
+int 0
+int 0
+app_opted_in
+&&
+int 1
+int 0
+app_opted_in
+&&
+int 0
+byte "user_type"
+app_local_get
+byte "chainStore"
+==
+&&
+int 1
+byte "user_type"
+app_local_get
+byte "customer"
+==
+&&
+gtxn 1 Sender
 txn Sender
-itxn_field AssetReceiver
+==
+&&
+txn NumAppArgs
+int 2
+==
+&&
+byte "asset_id"
+app_global_get
+gtxn 1 XferAsset
+==
+&&
 txna ApplicationArgs 1
 btoi
-itxn_field AssetAmount
-int 20
-itxn_field XferAsset
-itxn_submit
+gtxn 1 AssetAmount
+==
+&&
+assert
 int 1
 return

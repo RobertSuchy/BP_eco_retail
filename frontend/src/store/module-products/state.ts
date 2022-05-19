@@ -1,12 +1,14 @@
 import { Product } from 'src/contracts'
 
 export interface ProductsStateInterface {
-  products: Product[]
+  products: Product[],
+  customers: string[]
 }
 
 function state(): ProductsStateInterface {
   return {
-    products: []
+    products: [],
+    customers: []
   }
 }
 

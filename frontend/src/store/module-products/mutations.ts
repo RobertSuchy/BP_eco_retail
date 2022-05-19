@@ -5,6 +5,10 @@ import { ProductsStateInterface } from './state'
 const mutation: MutationTree<ProductsStateInterface> = {
   STORE_PRODUCTS (state, products: Product[]) {
     state.products = products
+  },
+
+  STORE_CUSTOMERS (state, customers: string[]) {
+    state.customers = customers
   }
 }
 

@@ -11,6 +11,8 @@ const actions: ActionTree<AuthStateInterface, StateInterface> = {
       const response = await authService.me()
       if (response) {
         await dispatch('products/getAllProducts', '', { root: true })
+        await dispatch('products/getCustomers', '', { root: true })
+
         const balance = await txnService.getAccountBalance()
 
         if (Array.isArray(response)) {

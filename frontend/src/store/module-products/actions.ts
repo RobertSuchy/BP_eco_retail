@@ -7,6 +7,11 @@ const actions: ActionTree<ProductsStateInterface, StateInterface> = {
   async getAllProducts ({ commit }) {
     const products = await productService.getAllProducts()
     commit('STORE_PRODUCTS', products)
+  },
+
+  async getCustomers ({ commit }) {
+    const customers = await productService.getCustomers()
+    commit('STORE_CUSTOMERS', customers)
   }
 }
 

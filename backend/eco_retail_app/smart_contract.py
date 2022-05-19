@@ -5,20 +5,16 @@ from pyteal_helpers import program
 
 
 def approval():
-    # global_escrow = Bytes("escrow") # byteslice
     local_user_type = Bytes("user_type") # byteslice
-    # local_reward = Bytes("reward") # uint64
-    global_asset_id = Bytes("asset_id")
+    global_asset_id = Bytes("asset_id") # uint64
     
     customer = Bytes("customer")
     chain_store = Bytes("chainStore")
     producer = Bytes("producer")
     op_send_reward = Bytes("send_reward")
-    # op_set_escrow = Bytes("set_escrow")
     op_create_asa = Bytes("create_asa")
     op_exchange_asa = Bytes("exchange_asa")
     op_add_product = Bytes("add_product")
-    # op_c2c = Bytes("c2c")
 
 
     @Subroutine(TealType.none)
@@ -56,9 +52,10 @@ def approval():
             Assert(
                 And(
                     Gtxn[1].type_enum() == TxnType.Payment,
-                    App.localGet(Int(0), local_user_type) == chain_store,
                     App.optedIn(Int(0), Int(0)),
+                    App.localGet(Int(0), local_user_type) == chain_store,
                     Gtxn[1].receiver() == Global.current_application_address(),
+                    Txn.application_args.length() == Int(2),
                     Btoi(Txn.application_args[1]) * Int(10_000) == Gtxn[1].amount()
                 )
             ),
@@ -83,46 +80,26 @@ def approval():
 
 
     @Subroutine(TealType.none)
-    def send_reward(account: Expr):
+    def send_reward():
         return Seq(
-            InnerTxnBuilder.Begin(),
-            InnerTxnBuilder.SetFields({
-                TxnField.type_enum: TxnType.AssetTransfer,
-                TxnField.asset_receiver: Txn.sender(),
-                TxnField.asset_amount: Btoi(Txn.application_args[1]),
-                TxnField.xfer_asset: Int(20)
-            }),
-            InnerTxnBuilder.Submit(),
+            program.check_self(group_size=Int(2), group_index=Int(0)),
+            program.check_rekey_zero(2),
+            Assert(
+                And(
+                    Gtxn[1].type_enum() == TxnType.AssetTransfer,
+                    App.optedIn(Int(0), Int(0)),
+                    App.optedIn(Int(1), Int(0)),
+                    App.localGet(Int(0), local_user_type) == chain_store,
+                    App.localGet(Int(1), local_user_type) == customer,
+                    Txn.sender() == Gtxn[1].sender(),
+                    # Txn.accounts[1] == Gtxn[1].receiver(),
+                    Txn.application_args.length() == Int(2),
+                    App.globalGet(global_asset_id) == Gtxn[1].xfer_asset(),
+                    Btoi(Txn.application_args[1]) == Gtxn[1].asset_amount()
+                )
+            ),
             Approve()
         )
-
-
-    # @Subroutine(TealType.none)
-    # def c2c():
-    #     app_id = Btoi(Txn.application_args[1])
-
-    #     return Seq(
-    #         InnerTxnBuilder.Begin(),
-    #         InnerTxnBuilder.SetFields(
-    #             {
-    #                 TxnField.type_enum: TxnType.ApplicationCall,
-    #                 TxnField.application_id: Txn.applications[app_id],
-    #                 TxnField.application_args: [Bytes("send")],
-    #                 TxnField.fee: Int(0)
-    #             }
-    #         ),
-    #         InnerTxnBuilder.Submit(),
-    #         Approve()
-    #     )
-
-
-    # @Subroutine(TealType.none)
-    # def set_escrow():
-    #     return Seq([
-    #         Assert(Txn.sender() == Global.creator_address()),
-    #         App.globalPut(global_escrow, Txn.application_args[1]),
-    #         Approve()
-    #     ])
 
 
     return program.event(
@@ -135,16 +112,15 @@ def approval():
         ),
         no_op = Seq(
             Cond(
-                [Txn.application_args[0] == op_send_reward, send_reward(Int(0))],
                 [Txn.application_args[0] == op_create_asa, create_asa()],
                 [Txn.application_args[0] == op_exchange_asa, exchange_asa()],
                 [Txn.application_args[0] == op_add_product, add_product()],
-                # [Txn.application_args[0] == op_set_escrow, set_escrow()],
-                # [Txn.application_args[0] == op_c2c, c2c()],
+                [Txn.application_args[0] == op_send_reward, send_reward()]
             ),
             Reject()
         )
     )
+
 
 def clear():
     return Approve()
