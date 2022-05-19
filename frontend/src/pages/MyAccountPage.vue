@@ -37,12 +37,16 @@
               </template>
           </q-field>
 
-          <q-field borderless label="Wallet address:" stack-label>
+          <q-field borderless label="Wallet address (click to open in AlgoExplorer):" stack-label>
               <template v-slot:prepend>
               <q-icon name="wallet" />
               </template>
               <template v-slot:control>
-              <div class="self-center full-width no-outline wallet-address">{{ getUser.wallet }}</div>
+              <div class="self-center full-width no-outline wallet-address">
+                <a :href="'https://testnet.algoexplorer.io/address/' + getUser.wallet" target="_blank">
+                  {{ getUser.wallet }}
+                </a>
+              </div>
               </template>
           </q-field>
 
