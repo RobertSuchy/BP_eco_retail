@@ -15,7 +15,7 @@
     />
 
     <q-card v-if="getUser.userType === 'chainStore'" class="column q-ma-md q-ma-md-lg q-pa-xs q-pa-md-md q-pa-lg-lg flex justify-center"
-      :style="$q.screen.lt.sm ? {'width': '90%'} : $q.screen.lt.md ? {'width': '50%'} : $q.screen.lt.lg ? {'width': '35%'} : {'width': '25%'}">
+      :style="$q.screen.lt.sm ? {'width': '90%'} : $q.screen.lt.md ? {'width': '50%'} : $q.screen.lt.lg ? {'width': '45%'} : {'width': '35%'}">
         <q-card-section class="flex justify-center q-pb-xs">
           <div class="text-h5">
             Create a purchase list

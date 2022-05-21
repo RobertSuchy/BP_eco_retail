@@ -13,7 +13,6 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
 from django.urls import path
 from eco_retail_app import views
 
@@ -32,12 +31,12 @@ urlpatterns = [
     path('api/auth/me/', views.AuthMe.as_view()),
     path('api/get-account-balance/', views.GetAccountBalance.as_view()),
     path('api/get-customers/', views.GetCustomers.as_view()),
+    path('api/get-all-products/', views.GetAllProducts.as_view()),
     
-    # 
+    # methods for managing coins, products and processing transactions
     path('api/update-rewards-policy/', views.UpdateRewardsPolicy.as_view()),
     path('api/buy-eco-coins-get-txn/', views.BuyEcoCoinsGetTxn.as_view()),
     path('api/add-product/', views.AddProduct.as_view()),
-    path('api/get-all-products/', views.GetAllProducts.as_view()),
     path('api/process-purchase/', views.ProcessPurchase.as_view()),
-    path('api/send-txn/', views.SendTxn.as_view()),
+    path('api/send-txn/', views.SendTxn.as_view())
 ]

@@ -1,4 +1,3 @@
-from unicodedata import category
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
@@ -19,6 +18,8 @@ from algosdk.v2client.algod import AlgodClient
 from algosdk.future import transaction
 from algosdk import encoding
 
+from datetime import datetime
+
 
 ALGOD_ADDRESS = "http://localhost:4001"
 ALGOD_TOKEN = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -26,7 +27,6 @@ ASSET_ID = 90504994
 APP_ID = 90504607
 APP_ACCOUNT = "MQQXOGCZCY5ST6VRYQ7LETT4PW3XS3DHUU3NLT75IDYKBNPPQEFYG3MS6U"
 ALGOD_CLIENT = AlgodClient(ALGOD_TOKEN, ALGOD_ADDRESS)
-PARAMS = ALGOD_CLIENT.suggested_params()
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -47,7 +47,7 @@ class OptInAssetGetTxn(APIView):
         if not holding:
             txn = transaction.AssetTransferTxn(
                 sender=public_key,
-                sp=PARAMS,
+                sp=ALGOD_CLIENT.suggested_params(),
                 receiver=public_key,
                 amt=0,
                 index=ASSET_ID,
@@ -76,7 +76,7 @@ class OptInContractGetTxn(APIView):
         if not opted_in:
             txn = transaction.ApplicationOptInTxn(
                 sender=public_key,
-                sp=PARAMS,
+                sp=ALGOD_CLIENT.suggested_params(),
                 index=APP_ID,
                 app_args=[body['user_type']],
                 note=str(timezone.now())
@@ -102,7 +102,7 @@ class OptInSendTxn(APIView):
             print("round: ", confirmed_txn['confirmed-round'])
         except Exception as err:
             print(err)
-            return Response(status=500)
+            return Response(str(err), status=500)
 
         return Response('opted-in')
 
@@ -273,7 +273,7 @@ class BuyEcoCoinsGetTxn(APIView):
 
         txn1 = transaction.ApplicationCallTxn(
             sender=public_key,
-            sp=PARAMS,
+            sp=ALGOD_CLIENT.suggested_params(),
             on_complete=transaction.OnComplete.NoOpOC,
             index=APP_ID,
             app_args=app_args,
@@ -283,7 +283,7 @@ class BuyEcoCoinsGetTxn(APIView):
 
         txn2 = transaction.PaymentTxn(
             sender=public_key,
-            sp=PARAMS,
+            sp=ALGOD_CLIENT.suggested_params(),
             receiver=APP_ACCOUNT,
             # EcoRetail Coins -> Algos -> microAlgos
             amt=int(int(amount) / 100 * 1_000_000),
@@ -323,12 +323,14 @@ class SendTxn(APIView):
                 txid = ALGOD_CLIENT.send_transactions(signed_txn_group)
             else:
                 txid = ALGOD_CLIENT.send_transaction(signed_txn)
+            # time = datetime.now()
             confirmed_txn = transaction.wait_for_confirmation(ALGOD_CLIENT, txid, 4)
-            print("txID: ", txid)
-            print("round: ", confirmed_txn['confirmed-round'])
+            # print(datetime.now() - time)
+            # print("txID: ", txid)
+            # print("round: ", confirmed_txn['confirmed-round'])
         except Exception as err:
             print(err)
-            return Response(status=500)
+            return Response(str(err), status=500)
 
         return Response('Transaction(s) sent successfully!')
 
@@ -348,7 +350,7 @@ class AddProduct(APIView):
 
         txn = transaction.ApplicationCallTxn(
             sender=public_key,
-            sp=PARAMS,
+            sp=ALGOD_CLIENT.suggested_params(),
             on_complete=transaction.OnComplete.NoOpOC,
             index=APP_ID,
             app_args=app_args,
@@ -434,7 +436,7 @@ class ProcessPurchase(APIView):
 
             txn1 = transaction.ApplicationCallTxn(
                 sender=chain_store_wallet,
-                sp=PARAMS,
+                sp=ALGOD_CLIENT.suggested_params(),
                 on_complete=transaction.OnComplete.NoOpOC,
                 index=APP_ID,
                 app_args=app_args,
@@ -444,7 +446,7 @@ class ProcessPurchase(APIView):
 
             txn2 = transaction.AssetTransferTxn(
                 sender=chain_store_wallet,
-                sp=PARAMS,
+                sp=ALGOD_CLIENT.suggested_params(),
                 receiver=customer_wallet,
                 amt=reward,
                 index=ASSET_ID,
@@ -463,5 +465,5 @@ class ProcessPurchase(APIView):
 
         except Exception as err:
             print(err)
-            return Response(status=500)   
+            return Response(str(err), status=500)   
     
