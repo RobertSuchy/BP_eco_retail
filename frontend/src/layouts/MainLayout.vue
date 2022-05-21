@@ -10,6 +10,7 @@
           EcoRetail
         </q-toolbar-title>
 
+        <q-toggle v-model="dark" color="green" />
         <q-btn v-if="isAuthenticated" round icon="logout" @click="logout" />
       </q-toolbar>
 
@@ -47,6 +48,18 @@
 import { mapGetters } from 'vuex'
 
 export default {
+  data() {
+    return {
+      dark: true
+    }
+  },
+
+  watch: {
+    dark: function() {
+      this.$q.dark.set(this.dark)
+    }
+  },
+
   computed: {
     ...mapGetters('auth', {
       isAuthenticated: 'isAuthenticated',
