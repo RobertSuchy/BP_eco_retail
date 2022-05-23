@@ -30,14 +30,25 @@
     </q-page-container>
 
     <q-footer elevated class="bg-blue-grey-10 text-white">
-      <q-toolbar>
-        <q-toolbar-title>
+      <q-toolbar class="column">
+        <q-toolbar-title class="q-mt-md">
           <q-avatar>
             <q-icon name="eco" color="green" size="30px" />
           </q-avatar>
           EcoRetail
         </q-toolbar-title>
-        Róbert Suchý | Lukáš Mastiľak | BP 2021/2022
+        <div>
+          Róbert Suchý
+        </div>
+        <div>
+          Supervisor: Ing. Lukáš Mastiľak
+        </div>
+        <div>
+          Consultant: Ing. Kristián Košťál, PhD.
+        </div>
+        <div class="q-mb-md">
+          BP 2021/2022
+        </div>
       </q-toolbar>
     </q-footer>
 
