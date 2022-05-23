@@ -8,9 +8,9 @@ from algosdk import mnemonic, encoding
 class Test(HttpUser):
     private_key = None
     def on_start(self):
-        mnemonic01 = "transfer innocent power seat business wrestle valve tomato thank bulb pond gun gaze retreat museum solution veteran swift enter crop police boy renew abstract spawn"
+        mnemonic01 = "bar bundle imitate genuine better frown elegant door coyote click rubber exclude glory picnic frog undo glance remove wear age want plastic control absorb grief"
         self.private_key = mnemonic.to_private_key(mnemonic01)
-        self.client.headers.update({'Authorization': 'Token a4b5b36fe6e1ff29749e4dddcd87fc2ba7839bc1'})
+        self.client.headers.update({'Authorization': 'Token 6eb124e31033b3398c6f5e23e5ecf3db246ba603'})
         
     @task
     def process_purchase(self):
@@ -18,9 +18,9 @@ class Test(HttpUser):
         # r = random.randint(0, 1)
         # if r == 1:
         data = {
-            "wallet":"UOGHQT4VW23V56C4YEIGY7PVCRADTZSOZI3SCIIGDOIXJ4SI2P4LNAF3VI",
+            "wallet":"PGP2FSYJG4HPVMXIWTEBZCH2JXWU5AHYUZZ6BE6V4ZYRI2SUNMIYAJ2Y2Y",
             "purchase_list":[
-                {"id":1,"amount":2,"price":0.01},
+                {"id":1,"amount":1,"price":0.35},
                 {"id":2,"amount":3,"price":0.04},
                 {"id":3,"amount":1,"price":0.05},
                 {"id":4,"amount":4,"price":0.03},
