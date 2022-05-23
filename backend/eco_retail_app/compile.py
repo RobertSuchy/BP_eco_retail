@@ -1,3 +1,7 @@
+# základnú kostru smart kontraktu, obsahujúcu metódy pre jeho kompiláciu a iné pomocné metódy
+# sme použili z github repozitára vytvoreného platformou Algorand
+# https://github.com/algorand-devrel/pyteal-course 
+
 import importlib
 import sys
 

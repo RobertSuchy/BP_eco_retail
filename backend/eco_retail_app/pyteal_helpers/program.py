@@ -1,3 +1,7 @@
+# základnú kostru smart kontraktu, obsahujúcu metódy pre jeho kompiláciu a iné pomocné metódy
+# sme použili z github repozitára vytvoreného platformou Algorand
+# https://github.com/algorand-devrel/pyteal-course 
+
 from base64 import b64decode
 from dataclasses import dataclass
 from typing import Dict

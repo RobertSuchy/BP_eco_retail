@@ -1,3 +1,7 @@
+// autentifikačný aparát pre frontend sme použili so súhlasom Ing. Eduard Kuric, PhD.
+// poskytnutého k predmetu Vývoj progresívnych webových aplikácii
+// https://github.com/kurice/vpwa22/tree/main/prednasky/slek/part2
+
 import { boot } from 'quasar/wrappers'
 import { authManager } from 'src/services'
 import { RouteLocationNormalized, RouteLocationRaw } from 'vue-router'

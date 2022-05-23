@@ -1,3 +1,7 @@
+# základnú kostru smart kontraktu, obsahujúcu metódy pre jeho kompiláciu a iné pomocné metódy
+# sme použili z github repozitára vytvoreného platformou Algorand
+# https://github.com/algorand-devrel/pyteal-course 
+
 from algosdk import account
 from algosdk.future import transaction
 from algosdk.kmd import KMDClient

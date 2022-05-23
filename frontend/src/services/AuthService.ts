@@ -1,3 +1,7 @@
+// autentifikačný aparát pre frontend sme použili so súhlasom Ing. Eduard Kuric, PhD.
+// poskytnutého k predmetu Vývoj progresívnych webových aplikácii
+// https://github.com/kurice/vpwa22/tree/main/prednasky/slek/part2
+
 import type { AxiosError, AxiosRequestConfig } from 'axios'
 import type { ApiToken, LoginCredentials, RegisterData, User } from 'src/contracts'
 import { api } from 'src/boot/axios'
