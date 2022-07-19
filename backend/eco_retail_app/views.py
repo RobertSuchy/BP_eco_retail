@@ -396,6 +396,78 @@ class GetAllProducts(APIView):
         return Response(serializedProducts)
 
 
+# @method_decorator(csrf_exempt, name='dispatch')
+# class ProcessPurchase(APIView):
+#     authentication_classes = [TokenAuthentication]
+#     permission_classes = [IsAuthenticated]
+
+#     def post(self, request):
+#         body = json.loads(request.body)
+#         customer_wallet = body['wallet']
+
+#         purchase_list = body['purchase_list']
+#         algo_price = float(body['algo_price'])
+#         chain_store_wallet = request.user.wallet
+
+#         try:
+#             rewards_policy = RewardsPolicy.objects.get(chain_store=request.user)
+
+#             rating_mapping = {
+#                 'A': rewards_policy.category_a,
+#                 'B': rewards_policy.category_b,
+#                 'C': rewards_policy.category_c,
+#                 'D': rewards_policy.category_d,
+#                 'E': rewards_policy.category_e,
+#                 'F': rewards_policy.category_f
+#             }
+
+#             reward = 0
+#             for item in purchase_list:
+#                 product = Product.objects.get(id=item['id'])
+#                 rating = rating_mapping.get(product.rating) / 100
+#                 reward += rating * item['price'] * item['amount'] 
+
+#             reward = int(round(reward / algo_price * 100))
+
+#             app_args = [
+#                 b"send_reward",
+#                 reward
+#             ]
+
+#             txn1 = transaction.ApplicationCallTxn(
+#                 sender=chain_store_wallet,
+#                 sp=ALGOD_CLIENT.suggested_params(),
+#                 on_complete=transaction.OnComplete.NoOpOC,
+#                 index=APP_ID,
+#                 app_args=app_args,
+#                 accounts=[customer_wallet],
+#                 note=str(timezone.now())
+#             )
+
+#             txn2 = transaction.AssetTransferTxn(
+#                 sender=chain_store_wallet,
+#                 sp=ALGOD_CLIENT.suggested_params(),
+#                 receiver=customer_wallet,
+#                 amt=reward,
+#                 index=ASSET_ID,
+#                 note=str(timezone.now())
+#             )
+
+#             group_id = transaction.calculate_group_id([txn1, txn2])
+#             txn1.group = group_id
+#             txn2.group = group_id
+#             txn_group = [
+#                 encoding.msgpack_encode(txn1),
+#                 encoding.msgpack_encode(txn2)
+#             ]
+
+#             return Response([reward, txn_group])
+
+#         except Exception as err:
+#             print(err)
+#             return Response(str(err), status=500)   
+    
+# --- test ---
 @method_decorator(csrf_exempt, name='dispatch')
 class ProcessPurchase(APIView):
     authentication_classes = [TokenAuthentication]
@@ -410,21 +482,9 @@ class ProcessPurchase(APIView):
         chain_store_wallet = request.user.wallet
 
         try:
-            rewards_policy = RewardsPolicy.objects.get(chain_store=request.user)
-
-            rating_mapping = {
-                'A': rewards_policy.category_a,
-                'B': rewards_policy.category_b,
-                'C': rewards_policy.category_c,
-                'D': rewards_policy.category_d,
-                'E': rewards_policy.category_e,
-                'F': rewards_policy.category_f
-            }
-
             reward = 0
             for item in purchase_list:
-                product = Product.objects.get(id=item['id'])
-                rating = rating_mapping.get(product.rating) / 100
+                rating = 2 / 100
                 reward += rating * item['price'] * item['amount'] 
 
             reward = int(round(reward / algo_price * 100))
@@ -466,4 +526,3 @@ class ProcessPurchase(APIView):
         except Exception as err:
             print(err)
             return Response(str(err), status=500)   
-    
