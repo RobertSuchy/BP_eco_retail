@@ -1,4 +1,4 @@
-# BP_eco_retail
-Róbert Suchý
-FIIT STU
-Bakalárska práca 2021/2022
+# Vernostný systém pre maloobchod zameraný na udržateľnosť produktov
+Róbert Suchý | FIIT STU | Bakalárska práca 2021/2022
+
+V bakalárskej práci sa venujeme problematike udržateľnosti produktov predávaných v maloobchode. Inšpirovali sme sa princípom existujúcich vernostných systémov a navrhli sme riešenie, ktoré odmeňuje zákazníkov za nakupovanie produktov vo forme tokenov, a to s ohľadom na ich ekologické hodnotenie. Rozhodli sme sa využiť technológiu blockchainu, pre zabezpečenie konzistentnosti a transparentnosti pri odmeňovaní. Vytvorili sme prototyp, ktorý sa skladá z webovej aplikácie (Quasar), aplikačného servera (Django), databázy produktov (PostgreSQL) a smart kontraktu (Algorand - PyTeal), ktorý zabezpečuje dodržanie základnej logiky. Pridávanie produktov do databázy spolu s ich ekologickým hodnotením (kategórie od A po F), môžu vykonávať jednotliví výrobcovia. Tieto produkty sú viditeľné pre všetkých používateľov. Obchodné reťazce majú možnosť nastaviť vlastnú politiku odmeňovania pre jednotlivé kategórie. Od smart kontraktu môžu nakúpiť tokeny a tie následne posielať na peňaženky zákazníkov, na základe vypočítanej odmeny pre daný nákup. Testy nášho prototypu ukázali, že je priestor pracovať na škálovateľnosti. Tiež sme zistili, že je potrebné doplniť do riešenia technológiu blockchain oracle, na zabezpečenie dôveryhodného prepojenia medzi blockchainom a dátami o produktoch z reálneho sveta.
